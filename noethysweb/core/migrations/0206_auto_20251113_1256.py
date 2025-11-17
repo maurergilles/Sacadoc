@@ -23,6 +23,6 @@ class Migration(migrations.Migration):
         migrations.AlterField(
             model_name='article',
             name='structure',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='core.structure', verbose_name='Structure'),
+            field=models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, to='core.structure', verbose_name='Structure'),
         ),
     ]
