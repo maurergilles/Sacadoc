@@ -4,8 +4,10 @@
 #  Distribué sous licence GNU GPL.
 
 import datetime
+
 from django.db.models import Q
-from core.models import TypeConsentement, UniteConsentement, Consentement, Inscription, Rattachement
+
+from core.models import UniteConsentement, Consentement, Inscription, Rattachement, Famille
 
 
 def Get_approbations_requises(famille=None, activites=None, idindividu=None, avec_consentements_existants=True):
@@ -57,3 +59,8 @@ def Get_approbations_requises(famille=None, activites=None, idindividu=None, ave
     approbations_requises["nbre_total"] = len(approbations_requises["consentements"]) + len(approbations_requises["rattachements"]) + len(approbations_requises["familles"])
 
     return approbations_requises
+
+def has_any_approbation_missing(famille: Famille):
+    """Savoir si la famille a des approbations en attente"""
+    inscriptions_besoin_certification = Inscription.objects.filter(famille=famille, besoin_certification=True)
+    return inscriptions_besoin_certification.exists()

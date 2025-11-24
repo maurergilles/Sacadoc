@@ -49,8 +49,8 @@ class Accueil(CustomView, TemplateView):
         context['nbre_messages_non_lus'] = len(PortailMessage.objects.filter(famille=self.request.user.famille, utilisateur__isnull=False, date_lecture__isnull=True))
 
         # Approbations
-        approbations_requises = utils_approbations.Get_approbations_requises(famille=self.request.user.famille)
-        context['nbre_approbations_requises'] = approbations_requises["nbre_total"]
+        approbations_requises = utils_approbations.has_any_aprobation_missing(famille=self.request.user.famille)
+        context['approbations_requises'] = approbations_requises
 
         # Récupération des activités de la famille
         conditions = Q(famille=self.request.user.famille) & (Q(date_fin__isnull=True) | Q(date_fin__gte=datetime.date.today()))

@@ -2036,6 +2036,7 @@ class Inscription(models.Model):
     statut_choix = [("ok", "Inscription validée"), ("refus", "Inscription refusée")]
     statut = models.CharField(verbose_name="Statut", max_length=100, choices=statut_choix, default="ok")
     internet_reservations = models.BooleanField(verbose_name="Autoriser les réservations sur le portail", default=True)
+    besoin_certification = models.BooleanField(verbose_name="Besoin de certification", default=False)
 
     class Meta:
         db_table = 'inscriptions'
