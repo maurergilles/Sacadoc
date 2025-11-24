@@ -3,7 +3,7 @@
 #  Noethysweb, application de gestion multi-activités.
 #  Distribué sous licence GNU GPL.
 
-import logging, os, datetime, codecs, zipfile, requests
+import logging, os, datetime, codecs, zipfile, requests, shutil
 logger = logging.getLogger(__name__)
 from urllib.request import urlopen, urlretrieve
 from noethysweb import version
@@ -55,6 +55,53 @@ def Recherche_update():
     return version_online_txt, changelog
 
 
+def Backup_database():
+    """Crée une sauvegarde de la base de données avec un timestamp dans le nom."""
+    # Récupération du chemin de la base de données
+    databases = settings.DATABASES
+    if 'default' not in databases:
+        logger.debug("Aucune base de données 'default' trouvée.")
+        return False
+
+    db_config = databases['default']
+
+    # On ne fait la sauvegarde que pour SQLite
+    if db_config.get('ENGINE') != 'django.db.backends.sqlite3':
+        logger.debug("La sauvegarde automatique n'est supportée que pour SQLite.")
+        return False
+
+    db_path = db_config.get('NAME')
+    if not db_path or not os.path.isfile(db_path):
+        logger.debug(f"Fichier de base de données non trouvé: {db_path}")
+        return False
+
+    # Création du nom de fichier avec timestamp
+    timestamp = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
+    db_dir = os.path.dirname(db_path)
+    db_filename = os.path.basename(db_path)
+    db_name, db_ext = os.path.splitext(db_filename)
+    backup_filename = f"{db_name}_backup_{timestamp}{db_ext}"
+    backup_path = os.path.join(db_dir, backup_filename)
+
+    try:
+        logger.debug(f"Sauvegarde de la base de données: {db_path} -> {backup_path}")
+        shutil.copy2(db_path, backup_path)
+
+        # Sauvegarde aussi les fichiers WAL et SHM si présents (pour SQLite)
+        for ext in ['-wal', '-shm', '.sqlite3-wal', '.sqlite3-shm']:
+            wal_path = db_path + ext if ext.startswith('-') else db_path.replace(db_ext, ext)
+            if os.path.isfile(wal_path):
+                wal_backup = backup_path + ext if ext.startswith('-') else backup_path.replace(db_ext, ext)
+                shutil.copy2(wal_path, wal_backup)
+                logger.debug(f"Sauvegarde du fichier: {wal_path} -> {wal_backup}")
+
+        logger.debug("Sauvegarde de la base de données terminée avec succès.")
+        return backup_path
+    except Exception as err:
+        logger.error(f"Erreur lors de la sauvegarde de la base de données: {err}")
+        return False
+
+
 def Update():
     # Recherche une version disponible
     version_online_txt, changelog = Recherche_update()
@@ -77,6 +124,14 @@ def Update():
         logger.debug("La nouvelle version '%s' n'a pas pu etre telechargee." % version_online_txt)
         logger.debug(err)
         return False
+
+    # Backup de la db
+    logger.debug("Sauvegarde de la base de données avant mise à jour...")
+    backup_result = Backup_database()
+    if backup_result:
+        logger.debug(f"Sauvegarde créée: {backup_result}")
+    else:
+        logger.warning("La sauvegarde de la base de données a échoué ou n'est pas supportée.")
 
     # Dezippage
     logger.debug("Dezippage du zip...")
