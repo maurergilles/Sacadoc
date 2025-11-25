@@ -104,12 +104,14 @@
 
 
             {# Messagerie #}
-            {% if liste_messages_non_lus %}
                 <li class="nav-item dropdown">
 
-                    <a class="nav-link" data-toggle="dropdown" href="#" title="Vous avez {{ liste_messages_non_lus|length }} message{{ liste_messages_non_lus|length|pluralize }}">
+                    <a class="nav-link" data-toggle="dropdown" href="#"
+                       title="Vous avez {{ liste_messages_non_lus|length }} message{{ liste_messages_non_lus|length|pluralize }}">
                         <i class="fa fa-comments"></i>
-                        <span class="badge badge-danger navbar-badge">{{ liste_messages_non_lus|length }}</span>
+                        {% if liste_messages_non_lus|length > 0 %}
+                            <span class="badge badge-danger navbar-badge">{{ liste_messages_non_lus|length }}</span>
+                        {% endif %}
                     </a>
 
                     <div class="dropdown-menu dropdown-menu-xl dropdown-menu-left">
@@ -131,13 +133,29 @@
                             <div class="dropdown-divider"></div>
                         {% endfor %}
 
-                        <a href="{% url 'messagerie_portail' %}" class="dropdown-item dropdown-footer">
-                            Voir tous les nouveaux messages
-                        </a>
+                        <span class="dropdown-item dropdown-header text-center">{{ liste_messages_lus|length }} conversation{{ liste_messages_lus|length|pluralize:"s" }} en cours </span>
+                        <div class="dropdown-divider"></div>
 
-                    </div>
+                        {% for message in liste_messages_lus %}
+                            <a href="{% url 'messagerie_portail' idfamille=message.famille_id idstructure=message.structure_id %}" class="dropdown-item" title="{{ message.texte|striptags }}">
+                                <div class="media">
+                                    <div class="media-body">
+                                        <h3 class="dropdown-item-title">
+                                            <i class="fa fa-envelope-open text-success mr-1"></i> {{ message.famille.nom }}
+                                        </h3>
+                                        <p class="text-xs">{{ message.texte|striptags|truncatechars:55 }}</p>
+                                        <p class="mt-1 text-muted" style="font-size: 10px;"><i class="fa fa-clock-o mr-1"></i>{{ message.date_creation|timesince }} | <i class="fa fa-home mr-1"></i>{{ message.structure }}</p>
+                                    </div>
+                                </div>
+                            </a>
+                            <div class="dropdown-divider"></div>
+                        {% endfor %}
+
+                        <a href="{% url 'messagerie_portail' %}" class="dropdown-item dropdown-footer">
+                            <strong>Accéder à la messagerie</strong>
+                        </a>
+                    </>
                 </li>
-            {% endif %}
 
             {% if perms.core.demandes_portail_liste %}
 

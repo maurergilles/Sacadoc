@@ -14,6 +14,9 @@ from core.views.menu import GetMenuPrincipal
 from core.models import Organisateur, Parametre, Utilisateur, PortailMessage, PortailRenseignement, Structure, Activite, Famille, Inscription
 from core.utils import utils_parametres
 from noethysweb.version import GetVersion
+from django.db.models import OuterRef, Subquery
+from django.utils import timezone
+from datetime import timedelta
 
 def Memorise_option(request):
     """ Mémorise dans la DB et le cache une option d'interface pour l'utilisateur """
@@ -151,6 +154,24 @@ class CustomView(LoginRequiredMixin, UserPassesTestMixin): #, PermissionRequired
 
         # Messages du portail non lus
         context["liste_messages_non_lus"] = PortailMessage.objects.select_related("famille", "structure").filter(structure__in=self.request.user.structures.all(), utilisateur__isnull=True, date_lecture__isnull=True).order_by("date_creation")
+        liste_messages_non_lus = context["liste_messages_non_lus"]
+
+        # Date limite : 3 mois en arrière
+        date_limite = timezone.now() - timedelta(days=90)
+
+        # Sous-requête pour récupérer le dernier message par famille dans les 3 derniers mois
+        dernier_message_subquery = PortailMessage.objects.filter(
+            famille_id=OuterRef('famille_id'),
+            structure__in=self.request.user.structures.all(),
+            date_creation__gte=date_limite
+        ).order_by('-date_creation')
+
+        # Liste des derniers messages par famille, mais exclure celles avec messages non lus
+        context["liste_messages_lus"] = PortailMessage.objects.filter(
+            idmessage__in=Subquery(dernier_message_subquery.values('idmessage')[:1])
+        ).exclude(
+            famille__in=liste_messages_non_lus.values('famille_id')
+        ).select_related('famille', 'structure').order_by('-date_creation')
 
         # Filtrage
         structures = self.request.user.structures.all()

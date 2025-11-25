@@ -26,12 +26,12 @@
     {# Colonne gauche : messages non lus + lus #}
     <div class="col-md-4">
 
-        {# Bouton nouvelle conversation #}
-        <div class="mb-3 text-center">
-            <a href="{% url 'messagerie_nouvelle' %}" class="btn btn-primary btn-block">
-                <i class="fa fa-plus mr-1"></i> Nouvelle conversation
-            </a>
+        <div class="text-center mb-2">
+            <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#nouvelleConversationModal">
+                Nouvelle conversation
+            </button>
         </div>
+
 
         {# Messages non lus #}
         {% embed 'core/box.html' with box_titre=True %}
@@ -125,7 +125,7 @@
                                             <span class="direct-chat-timestamp float-right">
                                                 {{ message.date_creation|date:"l j F Y H:i" }}
                                                 <span class="custom-switch custom-switch-off-danger custom-switch-on-success" title="Marquer comme lu">
-                                                    <input type="checkbox" class="custom-control-input case_switch" id="switch_{{ message.pk }}" data-idmessage="{{ message.pk }}" checked>
+                                                    <input type="checkbox" class="custom-control-input case_switch" id="switch_{{ message.pk }}" data-idmessage="{{ message.pk }}" {% if message.date_lecture %}checked{% endif %}>
                                                     <label class="custom-control-label" for="switch_{{ message.pk }}"></label>
                                                 </span>
                                             </span>
@@ -143,6 +143,113 @@
             {% endembed %}
         {% endif %}
     </div>
+
+        <!-- Modal -->
+        <div class="modal fade" id="nouvelleConversationModal" tabindex="-1" role="dialog" aria-labelledby="nouvelleConversationModalLabel" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+
+              <div class="modal-header">
+                <h5 class="modal-title" id="nouvelleConversationModalLabel">Nouvelle conversation</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Fermer">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+
+              <div class="modal-body">
+                <div class="form-group">
+                    <label for="selectFamille">Sélectionnez la famille</label>
+                    <select class="form-control" id="selectFamille">
+                        <option value="">-- Choisir une famille --</option>
+                        {% for famille in toutes_les_familles %}
+                            <option value="{{ famille.idfamille }}">{{ famille.nom }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label for="selectStructure">Sélectionnez la structure</label>
+                    <select class="form-control" id="selectStructure">
+                        <option value="">-- Choisir une structure --</option>
+                        {% for struct in structure_all %}
+                            <option value="{{ struct.idstructure }}">{{ struct.nom }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <!-- Lien qui redirige -->
+                <a id="lienNouvelleConversation"
+                   class="btn btn-success btn-block disabled"
+                   href="#"
+                   style="pointer-events: none;"
+                   data-url="{% url 'messagerie_portail' idstructure=0 idfamille=0 %}">
+                   Ouvrir la conversation
+                </a>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+            <script>
+            const selectFamille = document.getElementById("selectFamille");
+            const selectStructure = document.getElementById("selectStructure");
+            const lien = document.getElementById("lienNouvelleConversation");
+
+            function updateLien() {
+                const idfamille = selectFamille.value;
+                const idstructure = selectStructure.value;
+
+            if(idfamille && idstructure){
+                    // On prend l'URL modèle depuis data-url
+                    let urlTemplate = lien.dataset.url;
+                    // Remplace le 0/0 par les vraies valeurs
+                    let urlFinale = urlTemplate.replace(/0\/0/, `${idstructure}/${idfamille}`);
+                    lien.href = urlFinale;
+                    lien.classList.remove("disabled");
+                    lien.style.pointerEvents = "auto";
+                    console.log("Lien activé :", lien.href);
+                } else {
+                    lien.href = "#";
+                    lien.classList.add("disabled");
+                    lien.style.pointerEvents = "none";
+                    console.log("Lien désactivé");
+                }
+            }
+
+            selectFamille.addEventListener("change", updateLien);
+            selectStructure.addEventListener("change", updateLien);
+
+                {# Scroll jusqu'en bas de la liste des messages #}
+                    $("#div_messages").scrollTop($("#div_messages").get(0).scrollHeight);
+
+                    $(document).ready(function() {
+                        $(".case_switch").on("change", function(e) {
+                            $.ajax({
+                                type: "POST",
+                                url: "{% url 'ajax_message_marquer_lu' %}",
+                                data: {
+                                    idmessage: $(this).data("idmessage"),
+                                    etat: this.checked,
+                                    csrfmiddlewaretoken: "{{ csrf_token }}",
+                                },
+                                datatype: "json",
+                                success: function(data){
+                                    toastr.success("Modification du message effectuée");
+                                    const lien = document.getElementById("lienNouvelleConversation");
+                                    const url = lien.getAttribute("data-url");
+                                    window.location.href = url;
+
+                                },
+                                error: function(data) {
+                                    toastr.error(data.responseJSON.erreur);
+                                }
+                            })
+                        })
+                    })
+            </script>
+
+
 
 </div>
 
