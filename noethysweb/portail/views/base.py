@@ -149,7 +149,7 @@ class CustomView(LoginRequiredMixin, UserPassesTestMixin):
             PortailMessage.objects
             .filter(idmessage__in=dernier_messages_non_lus_ids)
             .select_related('famille', 'structure')
-            .order_by('date_creation')
+            .order_by('-date_creation')
         )
 
         # Derniers messages lus (groupés famille + structure)

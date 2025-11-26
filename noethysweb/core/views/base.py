@@ -199,7 +199,7 @@ class CustomView(LoginRequiredMixin, UserPassesTestMixin): #, PermissionRequired
         # Messages non lus
         context["liste_messages_non_lus"] = PortailMessage.objects.filter(
             idmessage__in=dernier_messages_non_lus_ids
-        ).select_related('famille', 'structure').order_by('date_creation')
+        ).select_related('famille', 'structure').order_by('-date_creation')
 
 
         # Filtrage
