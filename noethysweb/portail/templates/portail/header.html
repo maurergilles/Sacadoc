@@ -14,9 +14,9 @@
 
                 <a class="nav-link" data-toggle="dropdown" href="#"
                    title="Vous avez {{ liste_messages_non_lus|length }} message{{ liste_messages_non_lus|length|pluralize }}">
-                    <i class="fa fa-comments"></i>
+                        <i class="fa fa-comments"></i>
                     {% if liste_messages_non_lus|length > 0 %}
-                        <span class="badge badge-danger navbar-badge">{{ liste_messages_non_lus|length }}</span>
+                        <span class="badge badge-danger navbar-badge" style="position: relative; top: -5px; left: -2px;">{{ liste_messages_non_lus|length }}</span>
                     {% endif %}
                 </a>
 

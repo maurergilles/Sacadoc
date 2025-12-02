@@ -65,7 +65,7 @@ LISTE_METHODES_TARIFS = [
     #{ "code": "duree_montant_unique", "label":u"Montant unique en fonction d'une durée", "type": "horaire", "nbre_lignes_max": None, "entete": None, "champs": ("duree_min", "duree_max", "temps_facture", "montant_unique", "montant_questionnaire", "label"), "champs_obligatoires": ("duree_min", "duree_max", "montant_unique"), "tarifs_compatibles": ("JOURN",) },
     #{ "code": "duree_qf", "label":u"En fonction d'une durée et du quotient familial", "type": "horaire", "nbre_lignes_max": None, "entete": None, "champs": ("qf_min", "qf_max", "duree_min", "duree_max", "temps_facture", "montant_unique", "label"), "champs_obligatoires": ("qf_min", "qf_max", "duree_min", "duree_max", "montant_unique"), "tarifs_compatibles": ("JOURN",) },
 
-    { "code": "montant_unique_date", "label":u"Montant unique en fonction de la date", "type": "unitaire", "nbre_lignes_max": None, "entete": None, "champs": ("date", "montant_unique", "label"), "champs_obligatoires": ("date", "montant_unique"), "tarifs_compatibles": ("JOURN",) },
+    { "code": "montant_unique_date", "label":u"Montant unique en fonction de la date", "type": "unitaire", "nbre_lignes_max": None, "entete": None, "champs": ("date", "montant_unique"), "champs_obligatoires": ("date", "montant_unique"), "tarifs_compatibles": ("JOURN",) },
     #{ "code": "qf_date", "label":u"En fonction de la date et du quotient familial", "type": "unitaire", "nbre_lignes_max": None, "entete": None, "champs": ("date", "qf_min", "qf_max", "montant_unique", "label"), "champs_obligatoires": ("date", "qf_min", "qf_max", "montant_unique"), "tarifs_compatibles": ("JOURN",) },
 
     # { "code": "variable", "label":u"Tarif libre (Saisi par l'utilisateur)"), "type": "unitaire", "nbre_lignes_max": 0, "entete": None, "champs": (), "champs_obligatoires": (), "tarifs_compatibles": ("JOURN",) },
@@ -173,7 +173,8 @@ LISTE_CONTROLES_QUESTIONNAIRES = [
     {"code": "montant", "label":u"Montant", "image": "Euro.png", "filtre": "montant" },
     {"code": "liste_deroulante", "label":u"Liste déroulante", "image": "Ctrl_choice.png", "options":{"choix":None}, "filtre": "choix" },
     {"code": "liste_coches", "label":u"Sélection multiple", "image": "Coches.png", "options": {"hauteur":-1, "choix":None} , "filtre": "choix"},
-    {"code": "case_coche", "label":u"Case unique à cocher", "image": "Ctrl_coche.png" , "filtre": "coche"},
+    {"code": "liste_coches_ouinon", "label": u"Sélection OUI/NON", "image": "Coches.png", "options": {"hauteur": -1, "choix": None}, "filtre": "choix"},
+    #{"code": "case_coche", "label":u"Case unique à cocher", "image": "Ctrl_coche.png" , "filtre": "coche"},
     {"code": "date", "label":u"Date", "image": "Jour.png" , "filtre": "date"},
     #{"code": "slider", "label":u"Réglette", "image": "Reglette.png", "options": {"hauteur":-1, "min":0, "max":100}, "filtre": "entier" },
     #{"code": "couleur", "label":u"Couleur", "image": "Ctrl_couleur.png", "options": {"hauteur":20}, "filtre": None},
@@ -1203,7 +1204,7 @@ class Activite(models.Model):
     date_fin = models.DateField(verbose_name="Date de fin", blank=True, null=True)
     public_liste = [(0, "Parents"), (1, "Chef/taine"), (2, "Chef/taine de groupe - Directeur/trice"), (3, "Délégué(e) Local"), (4, "Ami(e)"), (5, "Jeunes"), (6, "Tous les adultes sauf les parents")]
     public = models.IntegerField(verbose_name=_("Public destinataire"), choices=public_liste, blank=False, null=False, default=5)
-    vaccins_obligatoires = models.BooleanField(verbose_name="Vaccinations obligatoires", default=False)
+    vaccins_obligatoires = models.BooleanField(verbose_name="Vaccinations obligatoires", default=True)
     assurance_obligatoire = models.BooleanField(verbose_name="Assurance obligatoire", default=False)
     date_creation = models.DateTimeField(verbose_name="Date de création", auto_now_add=True)
     nbre_inscrits_max = models.IntegerField(verbose_name="Nombre d'inscrits maximal", blank=True, null=True)
@@ -1218,7 +1219,7 @@ class Activite(models.Model):
     portail_inscriptions_affichage = models.CharField(verbose_name="Inscriptions autorisées", max_length=100, choices=choix_affichage_inscriptions, default="TOUJOURS")
     portail_inscriptions_date_debut = models.DateTimeField(verbose_name="Date de début d'affichage", blank=True, null=True)
     portail_inscriptions_date_fin = models.DateTimeField(verbose_name="Date de fin d'affichage", blank=True, null=True)
-    portail_inscriptions_imposer_pieces = models.BooleanField(verbose_name="Imposer le téléchargement des pièces à fournir lors de l'inscription", default=True)
+    portail_inscriptions_imposer_pieces = models.BooleanField(verbose_name="Imposer le téléchargement des pièces à fournir lors de l'inscription", default=False)
     portail_inscriptions_bloquer_si_complet = models.BooleanField(verbose_name="Empêcher l'inscription si activité complète", default=False)
     choix_affichage_reservations = [("JAMAIS", "Ne pas autoriser"), ("TOUJOURS", "Autoriser")]
     portail_reservations_affichage = models.CharField(verbose_name="Réservations autorisées", max_length=100, choices=choix_affichage_reservations, default="JAMAIS")
@@ -2560,15 +2561,15 @@ class QuestionnaireQuestion(models.Model):
     categorie = models.CharField(verbose_name="Catégorie", max_length=200, choices=LISTE_CATEGORIES_QUESTIONNAIRES)
     ordre = models.IntegerField(verbose_name="Ordre")
     visible = models.BooleanField(verbose_name="Visible sur le bureau", default=True)
-    label = models.CharField(verbose_name="Label", max_length=250)
-    controle = models.CharField(verbose_name="contrôle", max_length=200, choices=[(ctrl["code"], ctrl["label"]) for ctrl in LISTE_CONTROLES_QUESTIONNAIRES])
-    choix = models.CharField(verbose_name="Choix", max_length=500, blank=True, null=True, help_text="Saisissez les choix possibles séparés par un point-virgule. Exemple : 'Bananes;Pommes;Poires'")
+    label = models.CharField(verbose_name="Intitulé de la question", max_length=250)
+    controle = models.CharField(verbose_name="Type de réponse", max_length=200, choices=[(ctrl["code"], ctrl["label"]) for ctrl in LISTE_CONTROLES_QUESTIONNAIRES])
+    choix = models.CharField(verbose_name="Choix", max_length=500, blank=True, null=True, help_text="Saisissez les choix possibles séparés par un point-virgule. Exemple : 'Bananes;Pommes;Poires'. Un champ 'RAS' sera automatiquement ajouté dans les choix")
     options = models.CharField(verbose_name="Options", max_length=250, blank=True, null=True)
     visible_portail = models.BooleanField(verbose_name="Visible sur le portail", default=True)
     visible_fiche_renseignement = models.BooleanField(verbose_name="Visible sur les fiches de renseignements", default=True)
     texte_aide = models.CharField(verbose_name="Texte d'aide", max_length=500, blank=True, null=True, help_text="Vous pouvez saisir un texte d'aide qui apparaîtra sous le champ de saisie.")
     structure = models.ForeignKey(Structure, verbose_name="Structure", on_delete=models.PROTECT, blank=False, null=False)
-    activite = models.ForeignKey(Activite, verbose_name="Activité", on_delete=models.PROTECT, blank=True, null=True)
+    activite = models.ForeignKey(Activite, verbose_name="Activité", on_delete=models.PROTECT, blank=False, null=True)
 
     class Meta:
         db_table = 'questionnaire_questions'
