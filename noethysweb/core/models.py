@@ -384,6 +384,7 @@ class Utilisateur(AbstractUser):
     categorie = models.CharField(verbose_name="Catégorie", max_length=50, blank=True, null=True, default="utilisateur")
     force_reset_password = models.BooleanField(verbose_name="Force la mise à jour du mot de passe", default=False)
     date_expiration_mdp = models.DateTimeField(verbose_name="Date d'expiration du mot de passe", blank=True, null=True)
+    structures_admin = models.ManyToManyField(Structure, verbose_name="Structures admin", related_name="utilisateur_structures_admin", blank=True)
     structures = models.ManyToManyField(Structure, verbose_name="Structures", related_name="utilisateur_structures", blank=True)
     adresse_exp = models.ForeignKey(AdresseMail, verbose_name="Adresse d'expédition d'emails", related_name="utilisateur_adresse_exp", blank=True, null=True, on_delete=models.PROTECT, help_text="Sélectionnez une adresse d'expédition d'emails favorite dans la liste. Il est possible de créer de nouvelles adresses depuis le menu Paramétrage > Adresses d'expédition.")
     signature = models.ForeignKey(SignatureEmail, verbose_name="Signature d'emails", related_name="utilisateur_signature", blank=True, null=True, on_delete=models.PROTECT, help_text="Sélectionnez une signature d'emails favorite dans la liste. Il est possible de créer de nouvelles signatures depuis le menu Paramétrage > Signatures d'emails.")
@@ -476,6 +477,21 @@ class CategorieTravail(models.Model):
     def __str__(self):
         return self.nom
 
+class CompteBancaireAvance(models.Model):
+    idcompteavance = models.AutoField(verbose_name="ID", db_column="IDcompte", primary_key=True)
+    nom = models.CharField(verbose_name="Nom", max_length=200)
+    structure = models.ForeignKey(Structure, verbose_name="Structure", on_delete=models.PROTECT, blank=True, null=True)
+
+    class Meta:
+        db_table = 'comptes_bancaires_avance'
+        verbose_name = "compte d'avance"
+        verbose_name_plural = "comptes d'avances"
+
+    def __str__(self):
+        structure_name = "Sans structure"
+        if self.structure:
+            structure_name = self.structure.nom
+        return f"{self.nom} ({structure_name})"
 
 class CompteBancaire(models.Model):
     idcompte = models.AutoField(verbose_name="ID", db_column="IDcompte", primary_key=True)
@@ -3980,6 +3996,7 @@ class ComptaReleve(models.Model):
         return self.nom if self.nom else "Nouveau relevé"
 
 
+
 class ComptaVirement(models.Model):
     idvirement = models.AutoField(verbose_name="ID", db_column="IDvirement", primary_key=True)
     date = models.DateField(verbose_name="Date")
@@ -4002,6 +4019,19 @@ class ComptaVirement(models.Model):
         return "Virement ID%d" % self.idvirement
 
 
+class ComptaAvance(models.Model):
+    idcompta_avance = models.AutoField(verbose_name="ID", db_column='IDcompta_avance', primary_key=True)
+    nom = models.CharField(verbose_name="Nom complet ", max_length=200)
+    structure = models.ForeignKey(Structure, verbose_name="Structure ", on_delete=models.PROTECT, blank=False, null=False)
+
+    class Meta:
+        db_table = 'compta_avance'
+        verbose_name = "avance"
+        verbose_name_plural = "avances"
+
+    def __str__(self):
+        return self.nom
+
 class ComptaOperation(models.Model):
     idoperation = models.AutoField(verbose_name="ID", db_column="IDoperation", primary_key=True)
     type = models.CharField(verbose_name="Type", max_length=50, choices=[("debit", "Débit"), ("credit", "Crédit")])
@@ -4017,7 +4047,8 @@ class ComptaOperation(models.Model):
     observations = models.TextField(verbose_name="Observations", blank=True, null=True)
     virement = models.ForeignKey(ComptaVirement, verbose_name="Virement", on_delete=models.CASCADE, blank=True, null=True)
     document = models.FileField(verbose_name="Pièce justificative", storage=get_storage("justifs"), upload_to=get_uuid_path, blank=True, null=True)
-
+    avance = models.ForeignKey(ComptaAvance, verbose_name="Avance", on_delete=models.PROTECT, blank=True, null=True)
+    remb_avance = models.BooleanField(verbose_name="Avance régularisée", default=False)
     class Meta:
         db_table = "compta_operations"
         verbose_name = "Opération de trésorerie"

@@ -195,7 +195,31 @@
                             <small>Utilisateur depuis {{ request.user.date_joined|date:"j F Y" }}</small>
                         </p>
                     </li>
+                    <!-- Formulaire structures -->
+                    <li class="user-footer">
+                        <h5 class="dropdown-header text-center">Structures actives</h5>
+                        <form id="form_structures" method="post" action="{% url 'profil_utilisateur' %}">
+                            {% csrf_token %}
+                            <div class="btn-group-toggle d-flex flex-wrap" data-toggle="buttons">
+                                {% for structure in request.user.structures_admin.all %}
+                                    <label class="btn btn-outline-primary m-1 {% if structure in request.user.structures.all %}active{% endif %}">
+                                        <input type="checkbox" name="structures" value="{{ structure.idstructure }}" autocomplete="off"
+                                            {% if structure in request.user.structures.all %}checked{% endif %}>
+                                        {{ structure }}
+                                    </label>
+                                {% endfor %}
+                            </div>
+                        </form>
+                    </li>
 
+                    <script>
+                        // Envoie automatiquement le formulaire dès qu'un checkbox est cliqué
+                        document.querySelectorAll('#form_structures input[type=checkbox]').forEach(function(checkbox){
+                            checkbox.addEventListener('change', function(){
+                                this.closest('form').submit();
+                            });
+                        });
+                    </script>
                     <!-- Menu Footer-->
                     <li class="user-footer">
                         <div class="pull-left">
