@@ -123,7 +123,7 @@ class View(CustomView, TemplateView):
             libelle=libelle,
             montant=paiement_info['amount']/100,
             compte=compte,
-            mode_id=6,
+            mode_id=6, # Par défaut CB
             regul_avance=False,
             remb_avance=False,
             num_piece=orderId,
@@ -133,8 +133,8 @@ class View(CustomView, TemplateView):
             date_budget=timezone.now(),
             montant=paiement_info['amount']/100,
             compte=compte,
-            analytique_id=1,
-            categorie_id=1,
+            analytique_id=1, #pas utilisé
+            categorie_id=1, # Catégorie par défaut-> recette inscription
             operation=operation,
         )
 
