@@ -1215,7 +1215,7 @@ class Activite(models.Model):
     logo = ResizedImageField(verbose_name="Logo", upload_to=get_uuid_path, blank=True, null=True)
     pay_org = models.BooleanField(verbose_name="Activation paiement par lien externe", default=False)
     choix_tpe = [("HELLOASSO", "HelloAsso"), ("STRIPE", "Stripe"), ("PAYASSO", "PayAsso"), ("AUTRE", "Divers")]
-    pay_org_tpe = models.CharField(verbose_name="Passerelle de paiement", max_length=100, choices=choix_tpe, default="HELLOASSO")
+    pay_org_tpe = models.CharField(verbose_name="Passerelle de paiement", max_length=100, choices=choix_tpe, blank=True, null=True)
     pay = models.CharField(verbose_name="URL complet de paiement", max_length=200, blank=True, null=True)
     visible = models.BooleanField(verbose_name="Visible sur le portail", default=True)
     date_debut = models.DateField(verbose_name="Date de début", blank=True, null=True)

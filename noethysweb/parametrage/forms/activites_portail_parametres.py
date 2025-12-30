@@ -23,13 +23,14 @@ class Formulaire(FormulaireBase, ModelForm):
         model = Activite
         fields = ["portail_inscriptions_affichage", "visible", "portail_inscriptions_date_debut", "portail_inscriptions_date_fin",
                   "portail_reservations_limite", "portail_inscriptions_bloquer_si_complet", "portail_inscriptions_imposer_pieces",
-                  "reattribution_auto", "reattribution_adresse_exp", "reattribution_delai", "reattribution_modele_email","interne","maitrise",
+                  "reattribution_auto", "reattribution_adresse_exp", "reattribution_delai", "reattribution_modele_email","interne","maitrise", "pay_org_tpe", "pay", "pay_org"
                   ]
         help_texts = {
             "portail_inscriptions_affichage": "Sélectionnez Autoriser pour permettre aux usagers de demander une inscription à cette activité depuis le portail. Cette demande devra être validée par un utilisateur.",
             "portail_reservations_affichage": "Sélectionnez Autoriser pour permettre aux usagers de gérer leurs réservations pour cette activité sur le portail.",
             "portail_inscriptions_bloquer_si_complet": "L'usager ne peut pas envoyer sa demande d'inscription si l'activité est complète.",
             "portail_inscriptions_imposer_pieces": "Cochez cette case si vous souhaitez que l'usager fournisse obligatoirement les pièces manquantes depuis le portail pour valider sa demande d'inscription.",
+            "pay_org_tpe" : "Passerelle de paiement"
         }
 
     def __init__(self, *args, **kwargs):
@@ -73,6 +74,17 @@ class Formulaire(FormulaireBase, ModelForm):
                      Field("interne"),
                      Field("maitrise"),
                      ),
+
+            Fieldset("Paiement",
+                     Field("pay_org_tpe"),
+                     Div(
+                         Field("pay"),
+                         Field("pay_org"),# Champ qui s'affiche uniquement si pay_org_tpe = Payasso
+                         id="bloc_pay"
+                     ),
+                     ),
+
+
                      #Fieldset("Réservations",
             #    Field("portail_reservations_affichage"),
             #    Field("limite_delai"),
@@ -165,6 +177,17 @@ $(document).ready(function() {
     On_change_absenti_reservations.call($('#id_absenti_delai').get(0));
 });
 
+function On_change_pay_org_tpe() {
+    $('#bloc_pay').hide();
+    if($('#id_pay_org_tpe').val() == 'PAYASSO') {
+        $('#bloc_pay').show();
+    }
+}
+
+$(document).ready(function() {
+    $('#id_pay_org_tpe').change(On_change_pay_org_tpe);
+    On_change_pay_org_tpe();  // Initialisation
+});
 
 </script>
 """
