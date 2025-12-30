@@ -9,7 +9,7 @@ from portail.views.base import CustomView
 from django.views.generic import TemplateView
 from django.utils.translation import gettext as _
 from django.utils import timezone
-from core.models import TokenHA, Prestation, HelloAssoConfig, ModeReglement, CompteBancaire, Reglement, Ventilation, ComptaOperation
+from core.models import TokenHA, Prestation, HelloAssoConfig, ModeReglement, CompteBancaire, Reglement, Ventilation, ComptaOperation, ComptaVentilation
 import requests
 import logging
 from django.shortcuts import redirect
@@ -117,7 +117,7 @@ class View(CustomView, TemplateView):
 
         libelle = f"Prestation : {prestation.label} Famille : {prestation.famille.nom}"
 
-        ComptaOperation.objects.create(
+        operation = ComptaOperation.objects.create(
             type="credit",
             date=timezone.now(),
             libelle=libelle,
@@ -127,6 +127,15 @@ class View(CustomView, TemplateView):
             regul_avance=False,
             remb_avance=False,
             num_piece=orderId,
+        )
+
+        ComptaVentilation.objects.create(
+            date_budget=timezone.now(),
+            montant=paiement_info['amount']/100,
+            compte=compte,
+            analytique_id=1,
+            categorie_id=1,
+            operation=operation,
         )
 
 
