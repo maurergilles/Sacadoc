@@ -21,6 +21,10 @@ from core.utils import utils_portail, utils_fichiers, utils_dates, utils_texte
 from django.core.serializers import serialize
 from django.views.decorators.http import require_POST
 from datetime import date
+from django.db.models import Sum, Value
+from django.db.models.functions import Coalesce
+import decimal
+from django.db.models import Sum, F, DecimalField, ExpressionWrapper
 
 
 ETATS_PAIEMENTS = {1: "RECEIVED", 2: "ACCEPTED", 3: "PAID", 4: "DENIED", 5: "CANCELLED", 6: "WAITING", 99: "ERROR"}
@@ -611,7 +615,6 @@ class View(CustomView, TemplateView):
     def get_context_data(self, **kwargs):
         context = super(View, self).get_context_data(**kwargs)
         context['page_titre'] = "Facturation"
-        logger.debug("Def context")
 
         # Vérifie si la famille est abonnée au prélèvement automatique
         context["prelevement_actif"] = Mandat.objects.filter(famille=self.request.user.famille, actif=True).exists()
@@ -744,12 +747,41 @@ class View(CustomView, TemplateView):
             texte_impayes = _("Il reste %s pour un total de") % utils_texte.Convert_liste_to_texte_virgules(liste_impayes) + " <strong>%s</strong>" % utils_texte.Formate_montant(total_factures_impayees + total_periodes_impayees + total_cotisations_impayees)
         context["texte_impayes"] = texte_impayes
 
+
         # Calcul du solde
         if context["parametres_portail"].get("facturation_afficher_solde_famille", False):
-            total_prestations = Prestation.objects.values('famille_id').filter(famille=self.request.user.famille).aggregate(total=Sum("montant"))
-            total_reglements = Reglement.objects.values('famille_id').filter(famille=self.request.user.famille).aggregate(total=Sum("montant"))
-            total_du = total_prestations["total"] if total_prestations["total"] else decimal.Decimal(0)
-            total_regle = total_reglements["total"] if total_reglements["total"] else decimal.Decimal(0)
-            context["solde_famille"] = total_du - total_regle
+            activites_accessibles = Activite.objects.filter(visible=True)
+
+            # Prestations de la famille sur ces activités
+            prestations = (
+                Prestation.objects
+                .filter(
+                    famille=self.request.user.famille,
+                    activite__in=activites_accessibles)
+                .annotate(
+                    montant_total=F('montant'),
+                    montant_regle=Coalesce(
+                        Sum("ventilation__montant"),
+                        Value(decimal.Decimal(0))
+                    ),
+                )
+            )
+
+            # Enrichissement Python (reste + filtrage)
+            liste_prestations_solde = []
+            solde_global = decimal.Decimal(0)
+
+            for prestation in prestations:
+                reste = prestation.montant_total - prestation.montant_regle
+                prestation.montant_restant = reste
+
+                # On garde tout (ou seulement reste != 0 si tu veux)
+                liste_prestations_solde.append(prestation)
+                solde_global += reste
+
+            liste_prestations_solde.sort(key=lambda p: p.montant_restant, reverse=True)
+
+            context["liste_prestations_solde"] = liste_prestations_solde
+            context["solde_famille"] = solde_global
 
         return context

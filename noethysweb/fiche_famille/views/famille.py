@@ -20,6 +20,10 @@ from fiche_individu.forms.individu import Formulaire
 from fiche_famille.utils.utils_famille import LISTE_ONGLETS
 from cotisations.utils import utils_cotisations_manquantes
 from portail.utils import utils_renseignements_manquants
+import decimal
+from django.db.models import Sum, F, DecimalField, ExpressionWrapper
+from django.db.models import Sum, Value
+from django.db.models.functions import Coalesce
 
 def Definir_titulaire(request):
     # Récupération des données du formulaire
@@ -235,13 +239,47 @@ class Resume(Onglet, DetailView):
         context['notes'] = Note.objects.filter(conditions, famille_id=idfamille).order_by("date_saisie")
 
         # Calcul du solde
-        activites_accessibles = Activite.objects.filter(structure__in=self.request.user.structures.all())
+        activites_accessibles = Activite.objects.filter(structure__in=self.request.user.structures.all(), visible=True)
         prestations_famille = Prestation.objects.filter(famille_id=idfamille, activite__in=activites_accessibles)
         total_prestations = Prestation.objects.filter(famille_id=idfamille, activite__in=activites_accessibles).aggregate(total=Sum("montant"))
         total_reglements = Ventilation.objects.filter(prestation__in=prestations_famille).aggregate(total=Sum("montant"))
         total_du = total_prestations["total"] if total_prestations["total"] else Decimal(0)
         total_regle = total_reglements["total"] if total_reglements["total"] else Decimal(0)
         context['solde'] = total_du - total_regle
+
+
+        # Tableau de solde
+        # Prestations de la famille sur ces activités
+        prestations = (
+            Prestation.objects
+            .filter(
+                famille=idfamille,
+                activite__in=activites_accessibles)
+            .annotate(
+                montant_total=Coalesce(Sum("montant"), Value(decimal.Decimal(0))),
+                montant_regle=Coalesce(
+                    Sum("ventilation__montant"),
+                    Value(decimal.Decimal(0))
+                ),
+            )
+        )
+        # Enrichissement Python (reste + filtrage)
+        liste_prestations_solde = []
+        solde_global = decimal.Decimal(0)
+
+        for prestation in prestations:
+            reste = prestation.montant_total - prestation.montant_regle
+            prestation.montant_restant = reste
+
+            # On garde tout (ou seulement reste != 0 si tu veux)
+            liste_prestations_solde.append(prestation)
+            solde_global += reste
+
+        liste_prestations_solde.sort(key=lambda p: p.montant_restant, reverse=True)
+
+        context["liste_prestations_solde"] = liste_prestations_solde
+        context["solde_famille"] = solde_global
+
 
         # Inscriptions actuelles
         conditions = Q(famille_id=idfamille) & Q(date_debut__lte=datetime.date.today()) & (Q(date_fin__isnull=True) | Q(date_fin__gte=datetime.date.today()))

@@ -107,6 +107,69 @@
 
         </div>
 
+{% load i18n %}
+
+        {# Bloc solde des prestations #}
+
+        {% if solde_famille < 0 %}
+            <div class="alert alert-success">
+                <i class="fa fa-check-circle margin-r-5"></i>
+                {% blocktrans %}Il reste un crédit de{% endblocktrans %}
+                <b>{{ solde_famille|inverse_signe|montant }}</b>
+            </div>
+
+        {% elif liste_prestations_solde %}
+            {% embed 'core/box.html' with box_titre=True %}
+                {% block box_theme %}card-outline card-danger{% endblock %}
+                {% block box_titre %}{% trans "Détail des soldes des différentes prestations" %}{% endblock %}
+                {% block card_body_classe %}p-0{% endblock %}
+                {% block box_contenu %}
+
+                    <table class="table-facturation table mb-0">
+                        <thead>
+                            <tr>
+                                <th>{% trans "Activité" %}</th>
+                                <th>{% trans "Intitulé" %}</th>
+                                <th>{% trans "Montant" %}</th>
+                                <th>{% trans "Déjà réglé" %}</th>
+                                <th>{% trans "Reste à régler" %}</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for prestation in liste_prestations_solde %}
+                                <tr>
+                                    <td>({{ prestation.date_valeur|date:"Y" }}) {{ prestation.activite.nom }} ({{ prestation.individu.prenom }})</td>
+                                    <td>{{ prestation.label }}</td>
+                                    <td>{{ prestation.montant_total|montant }}</td>
+                                    <td>{{ prestation.montant_regle|montant }}</td>
+                                    <td>
+                                        {% if prestation.montant_restant > 0 %}
+                                            <span class="badge-pill bg-danger">
+                                                {{ prestation.montant_restant|montant }}
+                                            </span>
+                                        {% else %}
+                                            <span class="text-success">
+                                                {{ prestation.montant_restant|inverse_signe|montant }}
+                                            </span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+
+                {% endblock %}
+            {% endembed %}
+
+        {% else %}
+            <div class="alert alert-success">
+                <i class="fa fa-check-circle margin-r-5"></i>
+                {% trans "Votre compte est à jour. Aucune somme n’est à régler." %}
+            </div>
+        {% endif %}
+
+
+
         {# Alertes #}
         {% if nbre_alertes %}
             {% embed 'core/box.html' %}

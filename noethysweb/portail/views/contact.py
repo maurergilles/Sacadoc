@@ -23,6 +23,7 @@ class View(CustomView, TemplateView):
         messages_lus = context.get("liste_messages_lus", [])
         context['liste_messages_non_lus'] = messages_non_lus
         context['liste_messages_lus'] = messages_lus
+        context['structure_all'] = Structure.objects.filter(visible=True).order_by('nom')
 
         # Récupération des activités avec inscription
         inscriptions = Inscription.objects.filter(famille=self.request.user.famille)
