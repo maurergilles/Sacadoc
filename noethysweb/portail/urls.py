@@ -10,11 +10,8 @@ from consommations.views import grille
 from portail.views import reset_password, change_password, reservations, planning, renseignements, individu_identite, individu_questionnaire, individu_contacts, \
                             individu_regimes_alimentaires, individu_coords, individu_medecin, individu_informations, individu_assurances, individu_vaccinations, individu_allergies, individu_dispmed, \
                             famille_caisse, profil, profil_password_change, facturation, reglements, mentions, contact, messagerie, individu_maladies, album, documents, individu_traitement, \
-                            transmettre_piece, activites, inscrire_activite, attente_paiement, cotisations, sondage, famille_questionnaire, famille_parametres, pages_speciales, famille_individu, famille_parent, paiement_tpe, paiement_retour
+                            transmettre_piece, activites, inscrire_activite, attente_paiement, questionnaires, cotisations, sondage, famille_questionnaire, famille_parametres, pages_speciales, famille_individu, famille_parent, paiement_tpe, paiement_retour
 from core.decorators import secure_ajax_portail
-
-
-
 urlpatterns = [
 
     # Accueil
@@ -140,6 +137,9 @@ urlpatterns = [
 
     # Règlements
     path('reglements', reglements.View.as_view(), name='portail_reglements'),
+
+    # Questionnaires
+    path('questionnaires/', questionnaires.View.as_view(), name='portail_questionnaires'),
 
     # Contact
     path('contact', contact.View.as_view(), name='portail_contact'),

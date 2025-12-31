@@ -1,0 +1,72 @@
+{% extends "portail/page.html" %}
+{% load i18n %}
+{% load crispy_forms_tags %}
+{% load static %}
+{% load embed %}
+
+{% block styles %}
+    {{ block.super }}
+{% endblock %}
+
+{% block contenu_page %}
+                    <p class="text-muted" style="margin-top: 0.2rem; font-size: 0.9rem;">
+                        Merci d'enregistrer chaque question individuellement.
+                    </p>
+    {% if individus_forms %}
+        {% for bloc in individus_forms %}
+            {% embed 'core/box.html' with box_titre=True %}
+
+                {% block box_theme %}card-outline card-lightblue{% endblock %}
+                {% block box_titre %}
+                    {{ bloc.individu.prenom }} {{ bloc.individu.nom }}
+                {% endblock %}
+                {% block box_contenu %}
+                    <form method="POST" action="">
+                        {% csrf_token %}
+                        {% for question in bloc.questions %}
+                            <form method="POST" action="">
+                                {% csrf_token %}
+                                <input type="hidden" name="individu_pk" value="{{ bloc.individu.pk }}">
+                                <input type="hidden" name="question_pk" value="{{ question.pk }}">
+                                <input type="hidden" name="question_ctrl" value="{{ question.controle }}">
+
+                                <div class="form-group">
+                                    <label for="question_{{ question.pk }}">{{ question.label }}</label>
+
+                                    {% if question.controle == "ligne_texte" %}
+                                        <input type="text" class="form-control" name="valeur" value="{{ question.reponse|default_if_none:'' }}">
+                                    {% elif question.controle == "bloc_texte" %}
+                                        <textarea class="form-control" name="valeur" rows="4">{{ question.reponse|default_if_none:'' }}</textarea>
+                                    {% elif question.controle == "case_coche" %}
+                                        <input type="checkbox" name="valeur" {% if question.reponse %}checked{% endif %}>
+                                    {% elif question.controle in "entier decimal montant slider" %}
+                                        <input type="number" class="form-control" name="valeur" value="{{ question.reponse|default_if_none:'' }}">
+                                    {% elif question.controle == "date" %}
+                                        <input type="date" class="form-control" name="valeur" value="{{ question.reponse|default_if_none:'' }}">
+                                    {% elif question.is_liste %}
+                                        <select class="form-control" name="valeur">
+                                            <option value="">---------</option>
+                                            {% for choix in question.choix_list %}
+                                                <option value="{{ choix }}" {% if question.reponse == choix %}selected{% endif %}>{{ choix }}</option>
+                                            {% endfor %}
+                                        </select>
+                                    {% endif %}
+
+                                    {% if question.texte_aide %}
+                                        <small class="form-text text-muted">{{ question.texte_aide }}</small>
+                                    {% endif %}
+                                </div>
+                                <button type="submit" class="btn btn-primary">Enregistrer</button>
+                            </form>
+                            <hr style="margin: 1rem 0; border-color: #ddd;">
+                        {% endfor %}
+                    </form>
+                {% endblock box_contenu %}
+                {% block box_conclusion %}{% endblock %}
+            {% endembed %}
+        {% endfor %}
+    {% else %}
+        <b>{% blocktrans %}Aucune question manquante pour votre famille.{% endblocktrans %}</b>
+    {% endif %}
+
+{% endblock contenu_page %}

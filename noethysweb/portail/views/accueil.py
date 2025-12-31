@@ -17,7 +17,7 @@ from individus.utils import (
     utils_pieces_manquantes,
     utils_vaccinations,
 )
-from portail.utils import utils_approbations, utils_renseignements_manquants
+from portail.utils import utils_approbations, utils_renseignements_manquants, utils_questionnaires_manquants
 from portail.views.base import CustomView
 
 
@@ -45,11 +45,31 @@ class Accueil(CustomView, TemplateView):
         context['premier_rattachement_manquant_id'] = renseignements_manquants['premier_rattachement_id']
         context['page_cible_renseignements'] = renseignements_manquants['page_cible']
 
+        # Questionnaires manquants (par individu)
+        questions_manquantes_famille = utils_questionnaires_manquants.Get_questions_manquantes_famille(famille=self.request.user.famille)
+        print(questions_manquantes_famille)
+        # Mise dans le contexte (pour affichage détaillé si besoin)
+        context['questions_manquantes_famille'] = questions_manquantes_famille
+        nbre_questionnaires_manquants = 0
+        premier_questionnaire_manquant_id = None
+
+        for data in questions_manquantes_famille.values():
+            if data["nbre"] > 0:
+                nbre_questionnaires_manquants += data["nbre"]
+
+                if premier_questionnaire_manquant_id is None:
+                    premier_questionnaire_manquant_id = data["rattachement"].pk
+
+        context['nbre_questionnaires_manquants'] = nbre_questionnaires_manquants
+        context['premier_questionnaire_manquant_id'] = premier_questionnaire_manquant_id
+        context['page_cible_questionnaires'] = 'questionnaires'
+
+
         # Messages non lus
         context['nbre_messages_non_lus'] = len(PortailMessage.objects.filter(famille=self.request.user.famille, utilisateur__isnull=False, date_lecture__isnull=True))
 
         # Approbations
-        approbations_requises = utils_approbations.has_any_aprobation_missing(famille=self.request.user.famille)
+        approbations_requises = utils_approbations.has_any_approbation_missing(famille=self.request.user.famille)
         context['approbations_requises'] = approbations_requises
 
         # Récupération des activités de la famille
