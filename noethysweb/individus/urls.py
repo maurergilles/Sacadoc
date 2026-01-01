@@ -14,7 +14,7 @@ from individus.views import liste_pieces_manquantes, liste_pieces_fournies, list
                             edition_contacts, edition_renseignements, edition_informations, liste_photos_manquantes, recherche_avancee, inscriptions_modifier, \
                             liste_titulaires_helios, inscriptions_activite_liste, effacer_familles, liste_transports, liste_progtransports, inscriptions_changer_groupe, \
                             abonnes_listes_diffusion, abonnes_listes_diffusion_ajouter, liste_mails, imprimer_liste_inscrits, sondages_reponses, telecharger_plusieurs, famille_attestations, \
-                            liste_questionnaires_individus_modif, liste_questionnaires_individus_modif_valid, liste_allergies, liste_dispmed, inscriptions_activite_lot
+                            liste_questionnaires_individus_modif,demande_approbation, liste_questionnaires_individus_modif_valid, liste_allergies, liste_dispmed, inscriptions_activite_lot
 from fiche_individu.views import individu_inscriptions
 
 urlpatterns = [
@@ -48,6 +48,10 @@ urlpatterns = [
     path('individus/liste_inscriptions_refus', liste_inscriptions_attente.View.as_view(etat="refus"), name='liste_inscriptions_refus'),
     path('individus/suivi_inscriptions', suivi_inscriptions.View.as_view(), name='suivi_inscriptions'),
     path('individus/liste_familles_sans_inscriptions', liste_familles_sans_inscriptions.Liste.as_view(), name='liste_familles_sans_inscriptions'),
+
+    path('individus/approbation', demande_approbation.Liste.as_view(),  name='demande_approbation_liste'),
+    path('individus/approbation/<str:activite>', demande_approbation.Liste.as_view(), name='demande_approbation_liste'),
+
 
     path('individus/inscriptions_activite', inscriptions_activite_liste.Liste.as_view(), name='inscriptions_activite_liste'),
     path('individus/inscriptions_activite/<str:activite>', inscriptions_activite_liste.Liste.as_view(), name='inscriptions_activite_liste'),

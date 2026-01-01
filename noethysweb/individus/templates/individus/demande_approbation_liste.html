@@ -1,0 +1,63 @@
+{% extends "core/crud/liste_in_box.html" %}
+{% load crispy_forms_tags %}
+{% load static %}
+{% load embed %}
+
+
+{% block contenu_page %}
+    {% embed 'core/box.html' %}
+        {% block box_titre %}{{ box_titre }}{% endblock %}
+        {% block box_introduction %}{{ box_introduction|safe }}{% endblock %}
+        {% block box_contenu %}
+
+            <div class="input-group">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">Activité</span>
+                </div>
+                <select id="choix_activite" class="form-control">
+                    {% for code, label in liste_activites %}
+                        <option {% if code == activite %}selected{% endif %} value="{% if not code %}0{% else %}{{ code }}{% endif %}">{{ label }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <br>
+            <form method="post" class="d-inline">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="demande_globale">
+                <button type="submit" class="btn btn-success">
+                    <i class="fa fa-envelope"></i> Envoi d'une demande de vérfication pour tous les inscrits
+                </button>
+            </form>
+
+            <form method="post" class="d-inline ms-2">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="demande_rappel">
+                <button type="submit" class="btn btn-warning">
+                    <i class="fa fa-envelope"></i> Envoi d'un rappel de la demande de vérification
+                </button>
+            </form>
+
+            <form method="post" class="d-inline ms-2">
+                {% csrf_token %}
+                <input type="hidden" name="action" value="demande_annulation">
+                <button type="submit" class="btn btn-danger">
+                    <i class="fa fa-bell"></i> Annuler les demandes de vérification
+                </button>
+            </form>
+            <script>
+                $(document).ready(function() {
+                    function reload_page() {
+                        var url = "{% url url_liste %}" + "/" + $("#choix_activite").val();
+                        window.location.href = url;
+                    }
+                    $('#choix_activite').change(reload_page);
+                });
+            </script>
+
+            {% embed 'core/crud/liste.html' %}
+            {% endembed %}
+
+        {% endblock box_contenu %}
+        {% block box_conclusion %}{{ box_conclusion }}{% endblock %}
+    {% endembed %}
+{% endblock contenu_page %}
