@@ -133,15 +133,28 @@
                         <div class="inner">
                             <h3>{{ nbre_verifications_manquantes }}</h3>
                             <p>
-                                {% blocktranslate count counter=nbre_verifications_manquantes %}Vérification à effectuer{% plural %}Vérifications à effectuer{% endblocktranslate %}
+                                {% blocktranslate count counter=nbre_verifications_manquantes %}
+                                    Vérification d'infos à effectuer
+                                {% plural %}
+                                    Vérifications d'infos à effectuer
+                                {% endblocktranslate %}
                             </p>
                         </div>
                         <div class="icon"><i class="fa fa-edit"></i></div>
-                        <a href="{% url 'portail_verifications' %}" class="small-box-footer">{% trans "Corriger" %} <i class="fa fa-arrow-circle-right"></i></a>
+
+                        {# Footer conditionnel #}
+                        {% if nbre_vaccinations_manquantes or nbre_questionnaires_manquants or nbre_renseignements_manquants %}
+                            <div class="small-box-footer text-warning">
+                                {% trans "Certaines informations sont manquantes et doivent être complétées avant de vérifier les informations" %}
+                            </div>
+                        {% else %}
+                            <a href="{% url 'portail_verifications' %}" class="small-box-footer">
+                                {% trans "Corriger" %} <i class="fa fa-arrow-circle-right"></i>
+                            </a>
+                        {% endif %}
                     </div>
                 </div>
             {% endif %}
-
 
             {# Vaccinations manquantes #}
             {% if nbre_vaccinations_manquantes %}
