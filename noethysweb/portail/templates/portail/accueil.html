@@ -125,6 +125,24 @@
                 </div>
             {% endif %}
 
+
+            {# Vérifications manquantes #}
+            {% if nbre_verifications_manquantes %}
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-info">
+                        <div class="inner">
+                            <h3>{{ nbre_verifications_manquantes }}</h3>
+                            <p>
+                                {% blocktranslate count counter=nbre_verifications_manquantes %}Vérification à effectuer{% plural %}Vérifications à effectuer{% endblocktranslate %}
+                            </p>
+                        </div>
+                        <div class="icon"><i class="fa fa-edit"></i></div>
+                        <a href="{% url 'portail_verifications' %}" class="small-box-footer">{% trans "Corriger" %} <i class="fa fa-arrow-circle-right"></i></a>
+                    </div>
+                </div>
+            {% endif %}
+
+
             {# Vaccinations manquantes #}
             {% if nbre_vaccinations_manquantes %}
                 <div class="col-lg-3 col-6">
@@ -172,22 +190,6 @@
                     </div>
                 </div>
             {% endif %}
-
-            {# Approbations #}
-            {% if approbations_requises %}
-                <div class="col-lg-3 col-6">
-                    <div class="small-box bg-info">
-                        <div class="inner">
-                            <p>
-                                Approbation en attente
-                            </p>
-                        </div>
-                        <div class="icon"><i class="fa fa-edit"></i></div>
-                        <a href="{% url 'portail_renseignements' %}" class="small-box-footer">{% trans "Corriger" %} <i class="fa fa-arrow-circle-right"></i></a>
-                    </div>
-                </div>
-            {% endif %}
-
         </div>
     {% endif %}
 

@@ -47,7 +47,6 @@ class Accueil(CustomView, TemplateView):
 
         # Questionnaires manquants (par individu)
         questions_manquantes_famille = utils_questionnaires_manquants.Get_questions_manquantes_famille(famille=self.request.user.famille)
-        print(questions_manquantes_famille)
         # Mise dans le contexte (pour affichage détaillé si besoin)
         context['questions_manquantes_famille'] = questions_manquantes_famille
         nbre_questionnaires_manquants = 0
@@ -79,6 +78,10 @@ class Accueil(CustomView, TemplateView):
 
         # Vaccins manquants
         context["nbre_vaccinations_manquantes"] = sum([len(liste_vaccinations) for individu, liste_vaccinations in utils_vaccinations.Get_vaccins_obligatoires_by_inscriptions(inscriptions=inscriptions).items()])
+
+        # Vérfications manquantes
+        inscriptions = Inscription.objects.filter(famille=self.request.user.famille, besoin_certification=True)
+        context["nbre_verifications_manquantes"] = inscriptions.count()
 
         # Assurances manquantes
         context["nbre_assurances_manquantes"] = len(utils_assurances.Get_assurances_manquantes_by_inscriptions(famille=self.request.user.famille, inscriptions=inscriptions))

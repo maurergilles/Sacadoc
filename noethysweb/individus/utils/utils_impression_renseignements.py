@@ -18,6 +18,8 @@ from core.data.data_liens import DICT_TYPES_LIENS
 from core.data import data_civilites
 from core.utils import utils_dates, utils_impression, utils_questionnaires
 from individus.utils import utils_vaccinations
+import os
+from reportlab.platypus import Spacer
 
 
 class Impression(utils_impression.Impression):
@@ -138,9 +140,13 @@ class Impression(utils_impression.Impression):
             nom_fichier = rattachement.individu.Get_photo(forTemplate=False)
             if "media/" in nom_fichier:
                 nom_fichier = settings.MEDIA_ROOT + nom_fichier.replace("media/", "")
-            try:
-                photo_individu = Image(nom_fichier, width=64, height=64)
-            except:
+
+            if os.path.exists(nom_fichier):
+                try:
+                    photo_individu = Image(nom_fichier, width=64, height=64)
+                except:
+                    photo_individu = None
+            else:
                 photo_individu = None
 
             detail_individu = []
@@ -177,8 +183,16 @@ class Impression(utils_impression.Impression):
                 )
                 detail_individu.append(Paragraph(texte_scolarite, style_defaut))
 
-            # Cadre identité de l'individu
-            dataTableau = [(photo_individu, detail_individu, "%s\nEdité le %s" % (organisateur.nom, utils_dates.ConvertDateToFR(str(datetime.date.today()))))]
+            # Construction du tableau identité
+            col0=""
+            if photo_individu:
+                    col0 = photo_individu
+            else:
+                    col0 = Spacer(64, 64)
+            dataTableau = [(col0, detail_individu, "%s\nEdité le %s" % (
+            organisateur.nom, utils_dates.ConvertDateToFR(str(datetime.date.today()))))]
+            col_widths = [self.taille_page[0] - 100 - 75,
+                              100]  # Ajuster la largeur si pas de photo
             style = TableStyle([
                 ('BOX', (0, 0), (-1, -1), 0.25, colors.black),
                 ('VALIGN', (0, 0), (-1, -1), 'TOP'),
@@ -220,15 +234,8 @@ class Impression(utils_impression.Impression):
             # Contacts
             contenu_tableau = []
             for contact in dict_contacts.get((rattachement.individu_id, rattachement.famille_id), []):
-
-                # Autorisations du contact
-                autorisations = []
-                if contact.autorisation_sortie: autorisations.append(Img("sortie.png"))
-                if contact.autorisation_appel: autorisations.append(Img("appel.png"))
-                texte = "".join(autorisations) + "&nbsp;"
-
                 # Nom contact
-                texte += "<b>%s</b>%s" % (contact.Get_nom(), " (%s)" % contact.lien if contact.lien else "")
+                texte = "<b>%s</b>%s" % (contact.Get_nom(), " (%s)" % contact.lien if contact.lien else "")
 
                 # Coordonnées du contact
                 for label, code in [("Domi.", "tel_domicile"), ("Port.", "tel_mobile"), ("Pro.", "tel_travail"), ("Email", "mail")]:
@@ -319,18 +326,10 @@ class Impression(utils_impression.Impression):
 
             # Certification
             if rattachement.certification_date:
-                texte_certification = "Fiche certifiée sur le portail le %s" % utils_dates.ConvertDateToFR(rattachement.certification_date)
+                texte_certification = "Fiche vérifiée par le responsable le %s" % utils_dates.ConvertDateToFR(rattachement.certification_date)
             else:
-                texte_certification = "Fiche non certifiée sur le portail"
-            self.story.append(Tableau(titre="Certification en ligne".upper(), aide="", contenu=[Paragraph(texte_certification, style_defaut)], bord_bas=not self.dict_donnees["afficher_signature"]))
-
-            # Signature
-            if self.dict_donnees["afficher_signature"]:
-                texte_signature = [
-                    Paragraph("Je soussigné _______________________________________________ déclare exacts les renseignements portés sur cette fiche.", style_defaut),
-                    Paragraph("<br/>Date : __/__/____  &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  Signature :<br/><br/><br/>", style_centre),
-                ]
-                self.story.append(Tableau(titre="Signature".upper(), aide="", contenu=texte_signature, bord_bas=True))
+                texte_certification = "Fiche non vérifiée sur le portail"
+            self.story.append(Tableau(titre="Certification en ligne".upper(), aide="", contenu=[Paragraph(texte_certification, style_defaut)],))
 
             # Saut de page
             self.story.append(PageBreak())
