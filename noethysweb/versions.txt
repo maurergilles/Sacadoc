@@ -1,7 +1,9 @@
 Version 1.3.5.6.1 (30/12/2025)
 - bug compta helloAsso
 - ajout édition pièce
-- ajout warninng questionnaire + fonction qui va avec
+- ajout warning questionnaire + fonction et page de correction qui va avec
+- ajout vérif fiche côté portail. (basé sur la fiche PDF)
+
 
 Version 1.3.5.5.105 (30/12/2025)
 - bug déductions
