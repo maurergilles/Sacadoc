@@ -13,6 +13,6 @@ class Migration(migrations.Migration):
         migrations.AddField(
             model_name='activite',
             name='pay_org_tpe',
-            field=models.CharField(choices=[('HELLOASSO', 'HelloAsso'), ('STRIPE', 'Stripe'), ('PAYASSO', 'PayAsso'), ('AUTRE', 'Divers')], default='HELLOASSO', max_length=100, verbose_name='Passerelle de paiement'),
+            field=models.CharField(choices=[('HELLOASSO', 'HelloAsso'), ('STRIPE', 'Stripe'), ('PAYASSO', 'PayAsso'), ('AUTRE', 'Divers')], default=None, max_length=100, verbose_name='Passerelle de paiement'),
         ),
     ]
