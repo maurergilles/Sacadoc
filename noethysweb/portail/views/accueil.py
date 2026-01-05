@@ -17,7 +17,7 @@ from individus.utils import (
     utils_pieces_manquantes,
     utils_vaccinations,
 )
-from portail.utils import utils_approbations, utils_renseignements_manquants
+from portail.utils import utils_approbations, utils_renseignements_manquants, utils_questionnaires_manquants
 from portail.views.base import CustomView
 
 
@@ -45,12 +45,31 @@ class Accueil(CustomView, TemplateView):
         context['premier_rattachement_manquant_id'] = renseignements_manquants['premier_rattachement_id']
         context['page_cible_renseignements'] = renseignements_manquants['page_cible']
 
+        # Questionnaires manquants (par individu)
+        questions_manquantes_famille = utils_questionnaires_manquants.Get_questions_manquantes_famille(famille=self.request.user.famille)
+        # Mise dans le contexte (pour affichage détaillé si besoin)
+        context['questions_manquantes_famille'] = questions_manquantes_famille
+        nbre_questionnaires_manquants = 0
+        premier_questionnaire_manquant_id = None
+
+        for data in questions_manquantes_famille.values():
+            if data["nbre"] > 0:
+                nbre_questionnaires_manquants += data["nbre"]
+
+                if premier_questionnaire_manquant_id is None:
+                    premier_questionnaire_manquant_id = data["rattachement"].pk
+
+        context['nbre_questionnaires_manquants'] = nbre_questionnaires_manquants
+        context['premier_questionnaire_manquant_id'] = premier_questionnaire_manquant_id
+        context['page_cible_questionnaires'] = 'questionnaires'
+
+
         # Messages non lus
         context['nbre_messages_non_lus'] = len(PortailMessage.objects.filter(famille=self.request.user.famille, utilisateur__isnull=False, date_lecture__isnull=True))
 
         # Approbations
-        approbations_requises = utils_approbations.Get_approbations_requises(famille=self.request.user.famille)
-        context['nbre_approbations_requises'] = approbations_requises["nbre_total"]
+        approbations_requises = utils_approbations.has_any_approbation_missing(famille=self.request.user.famille)
+        context['approbations_requises'] = approbations_requises
 
         # Récupération des activités de la famille
         conditions = Q(famille=self.request.user.famille) & (Q(date_fin__isnull=True) | Q(date_fin__gte=datetime.date.today()))
@@ -59,6 +78,10 @@ class Accueil(CustomView, TemplateView):
 
         # Vaccins manquants
         context["nbre_vaccinations_manquantes"] = sum([len(liste_vaccinations) for individu, liste_vaccinations in utils_vaccinations.Get_vaccins_obligatoires_by_inscriptions(inscriptions=inscriptions).items()])
+
+        # Vérfications manquantes
+        inscriptions = Inscription.objects.filter(famille=self.request.user.famille, besoin_certification=True)
+        context["nbre_verifications_manquantes"] = inscriptions.count()
 
         # Assurances manquantes
         context["nbre_assurances_manquantes"] = len(utils_assurances.Get_assurances_manquantes_by_inscriptions(famille=self.request.user.famille, inscriptions=inscriptions))

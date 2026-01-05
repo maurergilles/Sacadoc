@@ -30,7 +30,7 @@ class Liste(Page, crud.Liste):
     model = Inscription
 
     def get_queryset(self):
-        condition = Q(activite__structure__in=self.request.user.structures.all())
+        condition = Q(activite__structure__in=self.request.user.structures.all()) & Q(activite__visible=True)
         if self.Get_groupe():
             condition &= Q(groupe=self.Get_groupe())
         return Inscription.objects.select_related("famille", "individu", "groupe", "categorie_tarif", "activite", "activite__structure").filter(self.Get_filtres("Q"), condition, activite=self.Get_activite())

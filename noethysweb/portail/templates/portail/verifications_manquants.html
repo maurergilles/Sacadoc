@@ -1,0 +1,52 @@
+{% extends "portail/page.html" %}
+{% load i18n %}
+
+{% block contenu_page %}
+
+{% if inscriptions_rattachements %}
+    <ul class="nav nav-tabs" role="tablist">
+        {% for ir in inscriptions_rattachements %}
+            <li class="nav-item">
+                <a class="nav-link {% if forloop.first %}active{% endif %}"
+                   data-toggle="tab"
+                   href="#individu-{{ ir.individu.idindividu }}">
+                    {{ ir.individu.prenom }} {{ ir.individu.nom }}
+                </a>
+            </li>
+        {% endfor %}
+    </ul>
+
+    <div class="tab-content mt-3">
+        {% for ir in inscriptions_rattachements %}
+            <div class="tab-pane fade {% if forloop.first %}show active{% endif %}"
+                 id="individu-{{ ir.individu.idindividu }}">
+
+                 <!-- Bouton de validation -->
+                 <form method="post" style="margin-top:1em;">
+                     {% csrf_token %}
+                     <input type="hidden" name="inscription_id" value="{{ ir.inscription.pk }}">
+                     <button type="submit" class="btn btn-success">
+                         ✔ J'ai vérifié et certifie exact les informations
+                     </button>
+                 </form>
+
+                <a href="{% url 'portail_individu_identite' ir.rattachement.pk %}" class="btn btn-secondary mt-2">
+                    ✎ Modifier les informations
+                </a>
+                <br></br>
+                 <!-- PDF pour cette personne -->
+                <iframe
+                    src="{{ ir.nom_fichier }}"
+                    width="100%"
+                    height="700"
+                    style="border:1px solid #ccc;">
+                </iframe>
+
+            </div>
+        {% endfor %}
+    </div>
+{% else %}
+    <p>{% trans "Aucune vérification en attente pour votre famille." %}</p>
+{% endif %}
+
+{% endblock %}

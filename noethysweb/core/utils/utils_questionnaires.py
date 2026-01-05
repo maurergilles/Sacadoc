@@ -41,13 +41,6 @@ def Creation_reponses(categorie="famille", liste_instances=[], question=None):
                 donnees = {categorie: instance, "question": question, "reponse": reponse}
                 liste_ajouts.append(QuestionnaireReponse(**donnees))
 
-    # Enregistrement dans la base
-    if liste_ajouts:
-        QuestionnaireReponse.objects.bulk_create(liste_ajouts)
-
-    logger.debug("%d réponses créées" % len(liste_ajouts))
-
-
 def FormateStr(valeur=u""):
     try :
         if valeur == None : return u""

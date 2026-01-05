@@ -21,7 +21,6 @@
 
     {# Texte bienvenue #}
     {% if parametres_portail.accueil_texte_bienvenue or parametres_portail.accueil_url_video %}
-        <h5 class="mb-2 text-secondary">{% trans "Bienvenue" %}</h5>
         <div class="card mb-4">
             <div class="card-body p-3">
                 {{ parametres_portail.accueil_texte_bienvenue|safe }}
@@ -35,9 +34,9 @@
     {% endif %}
 
 
-    {# En attente #}
-    {% if nbre_approbations_requises or nbre_messages_non_lus or nbre_pieces_manquantes or nbre_renseignements_manquants %}
-        <h5 class="mb-2 text-secondary">{% blocktrans %}En attente{% endblocktrans %}</h5>
+    {# Notifications #}
+    {% if approbations_requises or nbre_messages_non_lus or nbre_pieces_manquantes or nbre_renseignements_manquants %}
+        <h5 class="mb-2 text-secondary">{% blocktrans %}Notifications{% endblocktrans %}</h5>
         <div class="row mb-2">
 
             {# Messages #}
@@ -59,7 +58,7 @@
             {# Pièces manquantes #}
             {% if nbre_pieces_manquantes %}
                 <div class="col-lg-3 col-6">
-                    <div class="small-box bg-danger">
+                    <div class="small-box bg-warning">
                         <div class="inner">
                             <h3>{{ nbre_pieces_manquantes }}</h3>
                             <p>
@@ -98,10 +97,69 @@
                 </div>
             {% endif %}
 
+            {# Questionnaires manquants #}
+            {% if nbre_questionnaires_manquants %}
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-warning">
+                        <div class="inner">
+                            <h3>{{ nbre_questionnaires_manquants }}</h3>
+                            <p>
+                                {% blocktranslate count counter=nbre_questionnaires_manquants %}
+                                    Réponse manquante
+                                {% plural %}
+                                    Réponses manquantes
+                                {% endblocktranslate %}
+                            </p>
+                        </div>
+                        <div class="icon"><i class="fa fa-question-circle"></i></div>
+                        {% if premier_questionnaire_manquant_id %}
+                            <a href="{% url 'portail_questionnaires' %}" class="small-box-footer">
+                                {% trans "Corriger" %} <i class="fa fa-arrow-circle-right"></i>
+                            </a>
+                        {% else %}
+                            <a href="{% url 'portail_questionnaires' %}" class="small-box-footer">
+                                {% trans "Corriger" %} <i class="fa fa-arrow-circle-right"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+
+
+            {# Vérifications manquantes #}
+            {% if nbre_verifications_manquantes %}
+                <div class="col-lg-3 col-6">
+                    <div class="small-box bg-info">
+                        <div class="inner">
+                            <h3>{{ nbre_verifications_manquantes }}</h3>
+                            <p>
+                                {% blocktranslate count counter=nbre_verifications_manquantes %}
+                                    Vérification d'infos à effectuer
+                                {% plural %}
+                                    Vérifications d'infos à effectuer
+                                {% endblocktranslate %}
+                            </p>
+                        </div>
+                        <div class="icon"><i class="fa fa-edit"></i></div>
+
+                        {# Footer conditionnel #}
+                        {% if nbre_vaccinations_manquantes or nbre_questionnaires_manquants or nbre_renseignements_manquants %}
+                            <div class="small-box-footer text-warning">
+                                {% trans "Certaines informations sont manquantes et doivent être complétées avant de vérifier les informations" %}
+                            </div>
+                        {% else %}
+                            <a href="{% url 'portail_verifications' %}" class="small-box-footer">
+                                {% trans "Corriger" %} <i class="fa fa-arrow-circle-right"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            {% endif %}
+
             {# Vaccinations manquantes #}
             {% if nbre_vaccinations_manquantes %}
                 <div class="col-lg-3 col-6">
-                    <div class="small-box bg-danger">
+                    <div class="small-box bg-warning">
                         <div class="inner">
                             <h3>{{ nbre_vaccinations_manquantes }}</h3>
                             <p>
@@ -145,23 +203,6 @@
                     </div>
                 </div>
             {% endif %}
-
-            {# Approbations #}
-            {% if nbre_approbations_requises %}
-                <div class="col-lg-3 col-6">
-                    <div class="small-box bg-info">
-                        <div class="inner">
-                            <h3>{{ nbre_approbations_requises }}</h3>
-                            <p>
-                                {% blocktranslate count counter=nbre_approbations_requises %}Approbation en attente{% plural %}Approbations en attente{% endblocktranslate %}
-                            </p>
-                        </div>
-                        <div class="icon"><i class="fa fa-edit"></i></div>
-                        <a href="{% url 'portail_renseignements' %}" class="small-box-footer">{% trans "Corriger" %} <i class="fa fa-arrow-circle-right"></i></a>
-                    </div>
-                </div>
-            {% endif %}
-
         </div>
     {% endif %}
 

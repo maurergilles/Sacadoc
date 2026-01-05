@@ -4,8 +4,10 @@
 #  Distribué sous licence GNU GPL.
 
 import datetime
+
 from django.db.models import Q
-from core.models import TypeConsentement, UniteConsentement, Consentement, Inscription, Rattachement
+
+from core.models import UniteConsentement, Consentement, Inscription, Rattachement, Famille
 
 
 def Get_approbations_requises(famille=None, activites=None, idindividu=None, avec_consentements_existants=True):
@@ -19,7 +21,7 @@ def Get_approbations_requises(famille=None, activites=None, idindividu=None, ave
         inscriptions = Inscription.objects.select_related("activite", "individu").prefetch_related('activite__types_consentements').filter(conditions)
         activites = list({inscription.activite: True for inscription in inscriptions}.keys())
 
-    # Recherche des types de consentements nécessaires
+    # Recherche des types de consentements nécessaires (doc.) -> PAS UTILISE
     types_consentements = []
     for activite in activites:
         for type_consentement in activite.types_consentements.all():
@@ -42,7 +44,7 @@ def Get_approbations_requises(famille=None, activites=None, idindividu=None, ave
         if unite_consentement not in unites_consentements_famille:
             approbations_requises["consentements"].append(unite_consentement)
 
-    # Recherche des approbations des rattachements
+    #Vérfication des informations de l'individu
     rattachements = Rattachement.objects.prefetch_related('individu').filter(famille=famille).exclude(individu__in=famille.individus_masques.all()).order_by("individu__nom", "individu__prenom")
     for rattachement in rattachements:
         if not idindividu or rattachement.individu_id == idindividu or rattachement.categorie == 1:
@@ -57,3 +59,8 @@ def Get_approbations_requises(famille=None, activites=None, idindividu=None, ave
     approbations_requises["nbre_total"] = len(approbations_requises["consentements"]) + len(approbations_requises["rattachements"]) + len(approbations_requises["familles"])
 
     return approbations_requises
+
+def has_any_approbation_missing(famille: Famille):
+    """Savoir si la famille a des approbations en attente"""
+    inscriptions_besoin_certification = Inscription.objects.filter(famille=famille, besoin_certification=True)
+    return inscriptions_besoin_certification.exists()

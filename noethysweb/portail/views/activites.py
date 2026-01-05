@@ -33,7 +33,6 @@ class View(CustomView, TemplateView):
 
         approbations_requises = utils_approbations.Get_approbations_requises(famille=self.request.user.famille)
         context['nbre_approbations_requises'] = approbations_requises["nbre_total"]
-        print(approbations_requises)
 
         # Importation des inscriptions
         conditions = Q(famille=self.request.user.famille) & Q(statut="ok") & (Q(date_fin__isnull=True) | Q(date_fin__gte=datetime.date.today())) & Q(individu__deces=False)
