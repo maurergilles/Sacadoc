@@ -42,8 +42,12 @@
         {% block box_introduction %}Cliquez sur le bouton ci-dessous pour sauvegarder la base de données :{% endblock %}
         {% block box_contenu %}
             <div id="erreurs_db" class="text-red"></div>
-            <button type='button' data-mode="db" class="bouton_sauvegarder btn btn-primary mb-3"><i class="fa fa-database margin-r-5"></i> Sauvegarder la base de données</button>
-            <div id="sauvegardes_db" class="liste_sauvegardes bg-gray-light p-2">
+                <a href="{% url 'sauvegarde_telecharger' %}"
+                   class="btn btn-primary mb-3">
+                    <i class="fa fa-download margin-r-5"></i>
+                    Télécharger la base
+                </a>
+                <div id="sauvegardes_db" class="liste_sauvegardes bg-gray-light p-2">
                 {% if fichiers_db %}
                     <p>Dernières sauvegardes :</p>
                     <ul>

@@ -12,16 +12,25 @@ from django.core.management import call_command
 from core.views.base import CustomView
 from core.utils import utils_gnupg
 from dbbackup.storage import get_storage, utils
+import os
+from django.http import FileResponse, Http404
+from django.conf import settings
+from django.contrib.admin.views.decorators import staff_member_required
 
+@staff_member_required
 
 def Sauvegarder_db(request):
-    """ Créer une sauvegarde de la base de données """
-    utils_gnupg.Importation_cles()
-    try:
-        call_command("dbbackup", "--encrypt", "--clean", verbosity=1)
-    except Exception as err:
-        return JsonResponse({"erreur": str(err)}, status=401)
-    return JsonResponse({"success": True})
+        db_path = settings.DATABASES['default']['NAME']
+
+        if not os.path.exists(db_path):
+            raise Http404("Base introuvable")
+
+        response = FileResponse(
+            open(db_path, 'rb'),
+            as_attachment=True,
+            filename="sauvegarde_db.sqlite3"
+        )
+        return response
 
 
 def Sauvegarder_media(request):

@@ -86,7 +86,7 @@ urlpatterns = [
 
     # Sauvegarde
     path('outils/sauvegarde/creer', sauvegarde_creer.View.as_view(), name='sauvegarde_creer'),
-
+    path('outils/sauvegarde/telecharger', sauvegarde_creer.Sauvegarder_db, name='sauvegarde_telecharger'),
     # Portail
     path('outils/portail/messages/liste', messages_portail.Liste.as_view(), name='messages_portail_liste'),
     path('outils/portail/messages/supprimer/<int:pk>', messages_portail.Supprimer.as_view(), name='messages_portail_supprimer'),
