@@ -33,12 +33,14 @@ class Procedure(BaseProcedure):
             # --- Archivage des activités liées ---
             activites_qs = Activite.objects_all.filter(
                 structure=structure,
-                actif=True
+                actif=True,
+                visible=False
             )
 
             nb_activites = activites_qs.update(
                 actif=False,
-                nom=Concat(Value("ARCHIVE - "), F("nom"))
+                nom=Concat(Value("ARCHIVE - "), F("nom")),
+                visible=False
             )
 
             return (

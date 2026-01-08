@@ -75,7 +75,7 @@ class Liste(Page, crud.Liste):
         )
 
         if self.afficher_renseignements_attente:
-            queryset = Activite.objects.prefetch_related("groupes_activites").filter(
+            queryset = Activite.objects_all.prefetch_related("groupes_activites").filter(
                 self.Get_filtres("Q"), structure__in=self.request.user.structures.all()
             ).annotate(nbre_inscrits=Count("inscription"))
         return queryset
@@ -133,6 +133,19 @@ class Liste(Page, crud.Liste):
                 self.Create_bouton_supprimer(url=reverse(kwargs["view"].url_supprimer, args=[instance.pk])),
                 self.Create_bouton_dupliquer(url=reverse(kwargs["view"].url_dupliquer, args=[instance.pk])),
             ]
+            # --- Bouton archiver / désarchiver ---
+            if instance.actif:
+                label = "Archiver"
+                css = "btn-warning"
+                url_proc = reverse("activite_toggle_archive", args=[instance.pk])
+            else:
+                label = "Désarchiver"
+                css = "btn-success"
+                url_proc = reverse("desarchive_toggle_archive", args=[instance.pk])
+
+            bouton_archive = f'<a href="{url_proc}" class="btn {css} btn-sm">{label}</a>'
+            html.append(bouton_archive)
+
             return self.Create_boutons_actions(html)
 
         def Format_visible(self, instance, *args, **kwargs):

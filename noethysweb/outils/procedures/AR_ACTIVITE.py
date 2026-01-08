@@ -26,6 +26,7 @@ class Procedure(BaseProcedure):
                 return "L'activité fournie n'existe pas."
 
             activite_label.actif = False
+            activite_label.visible = False
             activite_label.nom = f"ARCHIVE - {activite_label.nom}"
             activite_label.save()
 

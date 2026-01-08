@@ -20,7 +20,7 @@ from parametrage.views import organisateur, structures, \
     modeles_documents, modeles_emails, modeles_sms, modeles_rappels, signatures_emails, \
     questionnaires, adresses_mail, activites_assistant, activites_assistant_sejour, activites_assistant_cantine, \
     activites_assistant_sorties, activites_assistant_stage, activites_assistant_annuelle, \
-    portail_parametres, types_regimes_alimentaires, assureurs, categories_compte_internet, modeles_pes, \
+    portail_parametres, types_regimes_alimentaires, assureurs, categories_compte_internet, modeles_pes,archive, \
     types_consentements, unites_consentements, articles, images_articles, albums, images_fond, portail_documents, portail_parametres_renseignements, \
     configurations_sms, perceptions, modeles_prelevements, taches_recurrentes, modeles_prestations, \
     categories_produits, produits, produits_tarifs, postes_analytiques, comptes_comptables, categories_comptables, tiers, budgets, \
@@ -56,6 +56,9 @@ urlpatterns = [
     path('parametrage/activites/supprimer/<int:idactivite>', activites.Supprimer.as_view(), name='activites_supprimer'),
     path('parametrage/activites/resume/<int:idactivite>', activites.Resume.as_view(), name='activites_resume'),
     path('parametrage/activites/dupliquer/<int:pk>', activites.Dupliquer.as_view(), name='activites_dupliquer'),
+
+    path('parametrage/archive/<int:idactivite>', archive.ToggleArchiveActivite.as_view(), name='activite_toggle_archive'),
+    path('parametrage/desarchive/<int:idactivite>', archive.ToggleDesarchive.as_view(), name='desarchive_toggle_archive'),
 
     path('parametrage/activites/generalites/<int:idactivite>', activites_generalites.Consulter.as_view(), name='activites_generalites'),
     path('parametrage/activites/generalites/modifier/<int:idactivite>', activites_generalites.Modifier.as_view(), name='activites_generalites_modifier'),
