@@ -41,12 +41,14 @@
         {% block box_theme %}card-outline{% endblock %}
         {% block box_titre %}Aide{% endblock %}
         {% block box_contenu %}
-            AACT : Permet d'archiver une activité dès qu'elle est terminée. Pour cela il faut taper "Archivage" dans commande et sélectionner l'activité. Ensuite appuyer sur "Exécuter" <br />
+            AR-ACTIVITE : Permet d'archiver une activité<br />
+            AR-STRUCTURE : Permet d'archiver une structure et ses éventuelles activités<br />
             PURGEPORTAIL : Permet de purger les renseignements en attente de validation<br />
             MAJTARIF : Met à jour le montant des prestations liées au tarif sélectionné<br />
             MSI : Procédure pour le développement. Affectation en masse du statut "jeunes" à des individus de catégorie 2<br />
             INVISIBLE : Procédure pour l'administration. Rend invisible toutes les activités dont la structure est invisible <br />
             GHOST : Procédure pour l'administration. Supprime les familles crées mais sans connexion au portail ET sans prestation <br />
+            AR : Procédure pour l'administration. Permet de mettre actif=false sur les activités avec le nom "ARCHIVE"<br />
 {% endblock %}
     {% endembed %}
 

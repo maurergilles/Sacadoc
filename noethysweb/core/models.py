@@ -325,6 +325,10 @@ class ConfigurationSMS(models.Model):
         return self.nom_exp if self.nom_exp else "Configuration SMS"
 
 
+class ActifManagerStruct(models.Manager):
+        def get_queryset(self):
+            return super().get_queryset().filter(actif=True)
+
 class Structure(models.Model):
     idstructure = models.AutoField(verbose_name="ID", db_column="IDstructure", primary_key=True)
     nom = models.CharField(verbose_name="Nom", max_length=200)
@@ -343,6 +347,9 @@ class Structure(models.Model):
     messagerie_active = models.BooleanField(verbose_name="Les familles sont autorisées à converser avec cette structure depuis la rubrique Contact du portail.", default=True)
     afficher_coords = models.BooleanField(verbose_name="Afficher les coordonnées de la structure sur le portail.", default=True)
     visible = models.BooleanField(verbose_name="Visible sur le portail", default=True)
+    actif = models.BooleanField(verbose_name="Structure archivée", default=True, help_text="")
+    objects = ActifManagerStruct()
+    objects_all = models.Manager()
 
     class Meta:
         db_table = 'structures'
@@ -1199,6 +1206,10 @@ class UniteConsentement(models.Model):
         return os.path.splitext(self.document.name)[1].replace(".", "")
 
 
+class ActifManager(models.Manager):
+        def get_queryset(self):
+            return super().get_queryset().filter(actif=True)
+
 class Activite(models.Model):
     idactivite = models.AutoField(verbose_name="ID", db_column='IDactivite', primary_key=True)
     nom = models.CharField(verbose_name="Nom", max_length=300)
@@ -1264,10 +1275,15 @@ class Activite(models.Model):
     image = models.ImageField(verbose_name="Image de l'activité", upload_to='activite_images/', blank=True, null=True)
     interne = models.BooleanField(verbose_name="Mutualisation questionnaire", default=False, help_text="Cochez cette case si vous souhaitez avoir le questionnaire habituel de Sacadoc destiné aux camps d'été")
     maitrise = models.BooleanField(verbose_name="Activité avec équipe encadrante", default=True, help_text="Cochez cette case si l'équipe encadrante doit s'inscrire à votre activité")
+    actif = models.BooleanField(verbose_name="Activitée archivée", default=True, help_text="")
+    objects = ActifManager()
+    objects_all = models.Manager()
+
     class Meta:
         db_table = 'activites'
         verbose_name = "activité"
         verbose_name_plural = "activités"
+
 
     def __str__(self):
         return self.nom
