@@ -26,7 +26,7 @@ def Get_update_for_accueil(request=None):
 
 def Recherche_update():
     # Lecture de la version disponible en ligne
-    url = "https://raw.githubusercontent.com/flambeaux-org/Sacadoc/refs/heads/main/noethysweb/versions.txt"
+    url = "https://raw.githubusercontent.com/Arthur67190/Joie-et-Vie/refs/heads/main/noethysweb/versions.txt"
     logger.debug("Recherche d'une nouvelle version...")
     try:
         data = requests.get(url, timeout=10)
