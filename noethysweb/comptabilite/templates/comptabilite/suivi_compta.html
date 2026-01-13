@@ -113,6 +113,34 @@
                     {% endif %}
                 </div>
             </div>
+
+            <!-- Card Déductions non remboursées -->
+            <div class="card card-default mt-3">
+                <div class="card-header with-border">
+                    <h3 class="card-title"><i class="fa fa-file-text-o margin-r-5"></i> Déductions à régulariser</h3>
+                    <div class="card-tools">
+                        <button type="button" class="btn btn-tool" data-card-widget="collapse" title="Réduire">
+                            <i class="fa fa-minus"></i>
+                        </button>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if liste_deductions %}
+                        <ul class="list-unstyled mb-0">
+                            {% for ligne in liste_deductions %}
+                                {% if ligne.regroupement %}
+                                    <li><strong>{{ ligne.label }} (Total : {{ ligne.total|floatformat:2 }} €)</strong></li>
+                                {% else %}
+                                    <li style="margin-left:20px;">{{ ligne.label }}</li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    {% else %}
+                        <p>Aucune déduction en attente</p>
+                    {% endif %}
+                </div>
+            </div>
+
         </div>
     </div>
 
