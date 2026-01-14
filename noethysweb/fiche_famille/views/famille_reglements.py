@@ -54,11 +54,18 @@ def Get_ventilation(request):
 def On_selection_mode_reglement(request):
     idmode = request.POST.get("idmode")
     if not idmode or idmode == "None":
-        return JsonResponse({"numero_piece": None, "emetteurs": []})
+        return JsonResponse({"numero_piece": None, "emetteurs": [], "encaissement": False})
+
     mode = ModeReglement.objects.get(pk=int(idmode))
     emetteurs = Emetteur.objects.filter(mode_id=int(idmode)).order_by("nom")
-    return JsonResponse({"numero_piece": mode.numero_piece, "emetteurs": [{"id": emetteur.pk, "text": emetteur.nom, "image": emetteur.image.name} for emetteur in emetteurs]})
-
+    return JsonResponse({
+        "numero_piece": mode.numero_piece,
+        "emetteurs": [
+            {"id": emetteur.pk, "text": emetteur.nom, "image": emetteur.image.name}
+            for emetteur in emetteurs
+        ],
+        "encaissement": mode.encaissement  # <-- ajout ici
+    })
 
 def Modifier_payeur(request):
     action = request.POST.get("action")

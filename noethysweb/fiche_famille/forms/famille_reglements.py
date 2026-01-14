@@ -204,6 +204,36 @@ EXTRA_HTML = """
 <script>
     var idfamille = {{ idfamille|default:0 }};
     var idreglement = {{ reglement.pk|default:0 }};
+    
+
+    $("#id_mode").on("change", function() {
+        var idmode = $(this).val();
+        $.ajax({
+            type: "POST",
+            url: "{% url 'ajax_on_selection_mode_reglement' %}",  // ou la bonne URL
+            data: { idmode: idmode },
+            success: function(data) {
+                console.log("Retour AJAX :", data);
+    
+                if (data.encaissement) {
+                    console.log("Mode encaissement = true, désactivation compte");
+                    $('#id_compte')
+                        .val(1)
+                        .prop('disabled', false)   // reste activé pour la transmission
+                        .css('pointer-events', 'none')  // empêche la sélection côté UI
+                        .css('background-color', '#e9ecef'); // gris visuel
+                } else {
+                    console.log("Mode encaissement = false, réactivation du champ");
+                    $('#id_compte')
+                        .prop('disabled', false)    // champ activé
+                        .css('pointer-events', 'auto') // réactive la sélection
+                        .css('background-color', ''); // retire le gris
+                }
+            }
+        });
+    });
+
+
 </script>
 
 """
