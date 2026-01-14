@@ -361,10 +361,14 @@ class Liste(Page, crud.Liste):
 
         filtre_inclusion = Q(comptaoperation__avance__isnull=True) | Q(comptaoperation__regul_avance=True)
 
+        # On ajoute l'exclusion des comptes orga
+        filtre_exclusion_orga = Q(comptaoperation__comptaventilation__categorie__orga=False)
+
         stats = CompteBancaire.objects.filter(pk=self.Get_categorie()).aggregate(
             total_debit=Sum(
                 Case(
-                    When(Q(comptaoperation__type="debit") & filtre_inclusion, then=F("comptaoperation__montant")),
+                    When(Q(comptaoperation__type="debit") & filtre_inclusion & filtre_exclusion_orga,
+                         then=F("comptaoperation__montant")),
                     output_field=DecimalField(),
                     default=0
                 )
@@ -372,20 +376,23 @@ class Liste(Page, crud.Liste):
 
             total_credit=Sum(
                 Case(
-                    When(Q(comptaoperation__type="credit") & filtre_inclusion, then=F("comptaoperation__montant")),
+                    When(Q(comptaoperation__type="credit") & filtre_inclusion & filtre_exclusion_orga,
+                         then=F("comptaoperation__montant")),
                     output_field=DecimalField(),
                     default=0
                 )
             ),
             solde_final=Sum(
                 Case(
-                    When(Q(comptaoperation__type="credit") & filtre_inclusion, then=F("comptaoperation__montant")),
+                    When(Q(comptaoperation__type="credit") & filtre_inclusion & filtre_exclusion_orga,
+                         then=F("comptaoperation__montant")),
                     output_field=DecimalField(),
                     default=0
                 )
             ) - Sum(
                 Case(
-                    When(Q(comptaoperation__type="debit") & filtre_inclusion, then=F("comptaoperation__montant")),
+                    When(Q(comptaoperation__type="debit") & filtre_inclusion & filtre_exclusion_orga,
+                         then=F("comptaoperation__montant")),
                     output_field=DecimalField(),
                     default=0
                 )

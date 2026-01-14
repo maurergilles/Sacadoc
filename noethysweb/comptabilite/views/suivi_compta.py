@@ -55,26 +55,6 @@ class View(CustomView, TemplateView):
         ventilations_tresorerie = Counter({ventilation["categorie"]: ventilation["total"] for ventilation in ComptaVentilation.objects.values("categorie").filter(condition).annotate(total=Sum("montant"))})
         dict_realise = {dict_categories[idcategorie]: montant for idcategorie, montant in dict(ventilations_tresorerie).items()}
 
-        # --- Nouveau : ajout d'une "catégorie" Règlements encaissement ---
-        compte = comptes.first()
-        structure = compte.structure
-        reglements_encaissement = Reglement.objects.filter(
-            mode__encaissement=True,
-            ventilation__prestation__activite__structure=structure
-        ).distinct().select_related('famille', 'mode', 'compte')
-
-        total_reglements = sum(float(r.montant or 0) for r in reglements_encaissement)
-        if total_reglements > 0:
-            class DummyCategorie:
-                pk = -1
-                nom = "Règlements encaissés par l'organisateur"
-                type = "credit"
-
-                def get_type_display(self):
-                    return "Crédit"
-
-            dict_realise[DummyCategorie()] = decimal.Decimal(total_reglements)
-
         # Création des lignes de catégories
         categories = {**dict_realise}.keys()
         categories = sorted(categories, key=lambda x: (x.type, x.nom))

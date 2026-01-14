@@ -116,7 +116,6 @@ class Formulaire(FormulaireBase, ModelForm):
         self.helper.label_class = 'col-md-2'
         self.helper.field_class = 'col-md-10'
 
-        self.fields["mode"].required = True
 
         # Type
         if self.instance.pk:
@@ -168,6 +167,9 @@ class Formulaire(FormulaireBase, ModelForm):
                 self.fields.pop("num_piece")
             if "document" in self.fields:
                 self.fields.pop("document")
+        #Mode
+        self.fields["mode"].required = True
+        self.fields["mode"].queryset = self.fields["mode"].queryset.exclude(encaissement=True)
 
         # Date
         self.fields["date"].initial = datetime.date.today()

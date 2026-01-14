@@ -54,7 +54,7 @@ def Get_ventilation(request):
 def On_selection_mode_reglement(request):
     idmode = request.POST.get("idmode")
     if not idmode or idmode == "None":
-        return JsonResponse({"numero_piece": None, "emetteurs": [], "encaissement": False})
+        return JsonResponse({"numero_piece": None, "emetteurs": []})
 
     mode = ModeReglement.objects.get(pk=int(idmode))
     emetteurs = Emetteur.objects.filter(mode_id=int(idmode)).order_by("nom")
@@ -64,7 +64,6 @@ def On_selection_mode_reglement(request):
             {"id": emetteur.pk, "text": emetteur.nom, "image": emetteur.image.name}
             for emetteur in emetteurs
         ],
-        "encaissement": mode.encaissement  # <-- ajout ici
     })
 
 def Modifier_payeur(request):
@@ -281,11 +280,18 @@ class ClasseCommune(Page):
         # --- Crée ou met à jour les ventilations comptables ---
         for item in liste_ventilations:
             prestation = Prestation.objects.get(pk=item["idprestation"])
+
+            # Choisir la catégorie : spéciale si mode encaissement
+            if reglement.mode.encaissement:
+                categorie_id = 33  # ID de ta catégorie "Règlements encaissement"
+            else:
+                categorie_id = 1  # ID normal, à adapter selon ton DB
+
             ComptaVentilation.objects.update_or_create(
                 operation=compta_op,
                 defaults={
-                    "categorie_id": 1,  # à adapter selon ta DB
-                    "analytique_id": 1,  # idem
+                    "categorie_id": categorie_id,
+                    "analytique_id": 1,  # à adapter
                     "montant": reglement.montant,
                     "date_budget": reglement.date,
                 }
