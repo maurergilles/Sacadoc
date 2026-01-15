@@ -52,8 +52,8 @@ urlpatterns = [
     path('individus/approbation', demande_approbation.Liste.as_view(),  name='demande_approbation_liste'),
     path('individus/approbation/<str:activite>', demande_approbation.Liste.as_view(), name='demande_approbation_liste'),
 
-    path('individus/suivi_administratif', suivi_administratif.SuiviAdministratifListe.as_view(), name='suivi_administratif_liste'),
-    path('individus/suivi_administratif/<str:activite>', suivi_administratif.SuiviAdministratifListe.as_view(),         name='suivi_administratif_liste'),
+    path('individus/suivi_administratif', suivi_administratif.Liste.as_view(), name='suivi_administratif_liste'),
+    path('individus/suivi_administratif/<str:activite>', suivi_administratif.Liste.as_view(),         name='suivi_administratif_liste'),
 
     path('individus/inscriptions_activite', inscriptions_activite_liste.Liste.as_view(), name='inscriptions_activite_liste'),
     path('individus/inscriptions_activite/<str:activite>', inscriptions_activite_liste.Liste.as_view(), name='inscriptions_activite_liste'),

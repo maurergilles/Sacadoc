@@ -15,10 +15,8 @@ class Page(crud.Page):
     url_supprimer = "suivi_administratif_supprimer"
     objet_singulier = "une vérification"
     objet_pluriel = "des vérifications"
-    description_liste = "Sélectionnez une activité puis effectuez la demande souhaitée."
 
-
-class SuiviAdministratifListe(Page, crud.CustomListe):
+class Liste(Page, crud.CustomListe):
     template_name = "individus/suivi_administratif.html"
 
     colonnes = [
