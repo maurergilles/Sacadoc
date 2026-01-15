@@ -34,35 +34,8 @@
                 });
             </script>
 
-<!-- Tableau des données brutes -->
-            <table class="table table-striped table-bordered" id="datatable">
-                <thead>
-                    <tr>
-                        <th>Individu</th>
-                        <th>Renseignements manquants</th>
-                        <th>Pièces manquantes</th>
-                        <th>Vaccinations manquantes</th>
-                        <th>Questionnaires manquants</th>
-                        <th>Sondages manquants</th>
-                        <th>Vérification infos. en attente</th>
-                        <th>Solde</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for row in data_par_individu %}
-                        <tr>
-                            <td>{{ row.individu.nom }} {{ row.individu.prenom }}</td>
-                            <td>{{ row.renseignements_manquants }}</td>
-                            <td>{{ row.pieces_manquantes }}</td>
-                            <td>{{ row.vaccins_manquants }}</td>
-                            <td>{{ row.questions_manquantes }}</td>
-                            <td>{{ row.sondages_manquants }}</td>
-                            <td>{{ row.besoin_certification }}</td>
-                            <td>{{ row.solde_a_payer|floatformat:2 }} €</td>
-                        </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
+            {% embed "core/crud/liste.html" %}
+            {% endembed %}
 
         {% endblock box_contenu %}
         {% block box_conclusion %}{{ box_conclusion }}{% endblock %}
