@@ -46,7 +46,6 @@ class View(CustomView, TemplateView):
         ids_activites = activites_data.get("ids", [])
         inscriptions_accessibles = Inscription.objects.filter(activite__in=ids_activites)
         familles = Famille.objects.filter(idfamille__in=inscriptions_accessibles.values('famille'))
-        print(ids_activites)
         if ids_activites:
             presta = Prestation.objects.filter(activite__in=ids_activites)
             conditions_prestations &= Q(activite__in=ids_activites)

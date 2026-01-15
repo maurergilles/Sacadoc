@@ -10,6 +10,75 @@ from core.models import Famille, Individu, Piece, TypePiece, Inscription, Rattac
 from core.utils import utils_texte
 
 
+import datetime
+from core.models import Piece
+
+def Get_pieces_manquantes_individu(famille=None, individu=None, activite=None, date_reference=None):
+    """
+    Retourne les pièces manquantes pour un individu sur une activité donnée.
+
+    Args:
+        famille: instance Famille
+        individu: instance Individu
+        activite: instance Activite
+        date_reference: date de référence pour la validité des pièces (optionnel)
+
+    Returns:
+        liste de dictionnaires:
+        [
+            {
+                "type_piece": <TypePiece>,
+                "label": <nom de la pièce>,
+                "valide": True/False,
+                "document": <document lié ou None>
+            },
+            ...
+        ]
+    """
+    if not date_reference:
+        date_reference = datetime.date.today()
+
+    # Récupère toutes les pièces existantes pour la famille et l'individu
+    pieces_existantes = Piece.objects.select_related("type_piece").filter(
+        famille=famille,
+        individu=individu,
+        date_debut__lte=date_reference,
+        date_fin__gte=date_reference
+    )
+
+    # Dictionnaire pour lookup rapide
+    dict_pieces = {}
+    for piece in pieces_existantes:
+        key = (piece.type_piece_id, piece.individu_id or 0)
+        dict_pieces[key] = piece
+
+    # Vérifie toutes les pièces requises par l'activité
+    pieces_necessaires = []
+    for type_piece in activite.pieces.all():
+        # Vérifie si la pièce est valide
+        valide = False
+        if type_piece.public == "famille":
+            # Pièce demandée pour la famille
+            for piece in pieces_existantes:
+                if piece.type_piece_id == type_piece.pk and piece.famille_id == famille.pk and piece.date_fin >= date_reference:
+                    valide = True
+        else:
+            # Pièce demandée pour l'individu
+            for piece in pieces_existantes:
+                if piece.type_piece_id == type_piece.pk and piece.individu_id == individu.pk and piece.date_fin >= date_reference:
+                    valide = True
+
+        pieces_necessaires.append({
+            "type_piece": type_piece,
+            "label": type_piece.Get_nom(individu),
+            "valide": valide,
+            "document": type_piece.type_piece_document.first() if type_piece.type_piece_document.exists() else None
+        })
+
+    # Retourne uniquement les pièces manquantes
+    return [p for p in pieces_necessaires if not p["valide"]]
+
+
 def Get_pieces_manquantes(famille=None, date_reference=None, only_invalides=False, utilisateur=None, exclure_individus=[]):
     """ Retourne les pièces manquantes d'une famille """
     if not date_reference:
