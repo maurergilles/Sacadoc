@@ -41,13 +41,11 @@ class Liste(Page, crud.Liste):
 
     class datatable_class(MyDatatable):
         filtres = ['idcompte', 'nom', 'numero', 'defaut']
-        numero = columns.TextColumn("Numéro", sources=None, processor='Get_numero')
         actions = columns.TextColumn("Actions", sources=None, processor='Get_actions_standard')
-        defaut = columns.TextColumn("Défaut", sources="defaut", processor='Get_default')
 
         class Meta:
             structure_template = MyDatatable.structure_template
-            columns = ['idcompte', 'nom', 'numero', 'defaut']
+            columns = ['idcompte', 'nom', 'structure']
             ordering = ['nom']
 
         def Get_numero(self, instance, **kwargs):

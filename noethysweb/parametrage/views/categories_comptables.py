@@ -52,17 +52,25 @@ class Liste(Page, crud.Liste):
         return context
 
     class datatable_class(MyDatatable):
-        filtres = ["idcategorie", "type", "nom", "abrege"]
+        filtres = ["idcategorie", "type", "nom"]
         type = columns.TextColumn("Type", sources=["type"], processor='Get_type')
         actions = columns.TextColumn("Actions", sources=None, processor='Get_actions_standard')
+        bilan = columns.TextColumn("Intégré au bilan", sources=["bilan"], processor='Get_bilan')
+        orga = columns.TextColumn("Opé. liée à l'organisateur", sources=["orga"], processor='Get_orga')
 
         class Meta:
             structure_template = MyDatatable.structure_template
-            columns = ["idcategorie", "type", "nom", "abrege", "compte_comptable"]
+            columns = ["idcategorie", "type", "nom", "bilan", "orga"]
             ordering = ["nom"]
 
         def Get_type(self, instance, *args, **kwargs):
             return instance.get_type_display()
+
+        def Get_bilan(self, instance, *args, **kwargs):
+            return "Oui" if instance.bilan else "Non"
+
+        def Get_orga(self, instance, *args, **kwargs):
+            return "Oui" if instance.orga else "Non"
 
 
 class Ajouter(Page, crud.Ajouter):
