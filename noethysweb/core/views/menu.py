@@ -9,7 +9,7 @@ from django.conf import settings
 
 
 def GetMenuPrincipal(organisateur=None, user=None):
-    menu = Menu(titre="Menu principal", user=user)
+    menu = Menu(titre="", user=user)
 
     # ------------------------------------ Accueil ------------------------------------
     menu.Add(code="accueil", titre="Accueil", icone="home", toujours_afficher=True)
@@ -24,30 +24,30 @@ def GetMenuPrincipal(organisateur=None, user=None):
         menu_structure.Add(code="organisateur_ajouter", titre="Organisateur", icone="file-text-o", compatible_demo=False)
     menu_structure.Add(code="structures_liste", titre="Structures", icone="file-text-o", compatible_demo=False)
     # menu_activites.Add(code="types_groupes_activites_liste", titre="Groupes d'activités", icone="file-text-o")
-    menu_structure.Add(code="activites_liste", titre="Activités", icone="file-text-o")
     menu_structure.Add(code="config_paiement_liste", titre="Passerelles de paiement", icone="file-text-o")
 
 
-    # # Cotisations
-    # menu_cotisations = menu_parametrage.Add(titre="Adhésions")
-    # menu_cotisations.Add(code="types_cotisations_liste", titre="Types d'adhésions", icone="file-text-o")
-    # menu_cotisations.Add(code="unites_cotisations_liste", titre="Unités d'adhésions", icone="file-text-o")
-
     # Modèles
     menu_modeles = menu_parametrage.Add(titre="Modèles")
+    menu_modeles.Add(code="modeles_documents_liste", titre="Modèles de documents", icone="file-text-o")
     menu_modeles.Add(code="modeles_impressions_liste", titre="Modèles d'impressions des documents", icone="file-text-o")
-    #menu_modeles.Add(code="modeles_word_liste", titre="Modèles de documents Word", icone="file-text-o")
     menu_modeles.Add(code="modeles_emails_liste", titre="Modèles d'emails", icone="file-text-o")
-    # menu_modeles.Add(code="modeles_sms_liste", titre="Modèles de SMS", icone="file-text-o")
     menu_modeles.Add(code="modeles_rappels_liste", titre="Modèles de lettres de rappel", icone="file-text-o")
     # menu_modeles.Add(code="modeles_pes_liste", titre="Modèles d'exports vers le Trésor Public", icone="file-text-o")
     # menu_modeles.Add(code="modeles_prestations_liste", titre="Modèles de prestations", icone="file-text-o")
     # menu_modeles.Add(code="modeles_prelevements_liste", titre="Modèles de prélèvements", icone="file-text-o")
     # menu_modeles.Add(code="modeles_aides_liste", titre="Modèles d'aides", icone="file-text-o")
-    menu_modeles.Add(code="modeles_documents_liste", titre="Modèles de documents", icone="file-text-o")
+    #menu_modeles.Add(code="modeles_word_liste", titre="Modèles de documents Word", icone="file-text-o")
+    # menu_modeles.Add(code="modeles_sms_liste", titre="Modèles de SMS", icone="file-text-o")
+
 
     # Renseignements
     menu_renseignements = menu_parametrage.Add(titre="Renseignements")
+    menu_renseignements.Add(code="categories_informations_liste", titre="Catégories PAI et automédication", icone="file-text-o")
+    menu_renseignements.Add(code="types_deductions_liste", titre="Types de déductions", icone="file-text-o")
+    menu_renseignements.Add(code="types_allergies_liste", titre="Types d'allergies", icone="file-text-o")
+    menu_renseignements.Add(code="types_dispmed_liste", titre="Types dispositifs médicaux", icone="file-text-o")
+    menu_renseignements.Add(code="types_vaccins_liste", titre="Types de vaccins", icone="file-text-o")
     # menu_renseignements.Add(code="regimes_liste", titre="Régimes sociaux", icone="file-text-o")
     # menu_renseignements.Add(code="caisses_liste", titre="Caisses", icone="file-text-o")
     # menu_renseignements.Add(code="types_quotients_liste", titre="Types de quotients", icone="file-text-o")
@@ -55,14 +55,15 @@ def GetMenuPrincipal(organisateur=None, user=None):
     # menu_renseignements.Add(code="secteurs_liste", titre="Secteurs géographiques", icone="file-text-o")
     # menu_renseignements.Add(code="types_sieste_liste", titre="Types de sieste", icone="file-text-o")
     # menu_renseignements.Add(code="types_regimes_alimentaires_liste", titre="Types de régimes alimentaires", icone="file-text-o")
-    menu_renseignements.Add(code="categories_informations_liste", titre="Catégories PAI et automédication", icone="file-text-o")
     #menu_renseignements.Add(code="types_maladies_liste", titre="Types de maladies", icone="file-text-o")
-    menu_renseignements.Add(code="types_deductions_liste", titre="Types de déductions", icone="file-text-o")
-    menu_renseignements.Add(code="types_allergies_liste", titre="Types d'allergies", icone="file-text-o")
-    menu_renseignements.Add(code="types_dispmed_liste", titre="Types dispositifs médicaux", icone="file-text-o")
-    menu_renseignements.Add(code="types_vaccins_liste", titre="Types de vaccins", icone="file-text-o")
+
     #menu_renseignements.Add(code="medecins_liste", titre="Médecins", icone="file-text-o")
     # menu_renseignements.Add(code="assureurs_liste", titre="Assureurs", icone="file-text-o")
+
+    # # Cotisations
+    # menu_cotisations = menu_parametrage.Add(titre="Adhésions")
+    # menu_cotisations.Add(code="types_cotisations_liste", titre="Types d'adhésions", icone="file-text-o")
+    # menu_cotisations.Add(code="unites_cotisations_liste", titre="Unités d'adhésions", icone="file-text-o")
 
     # # Facturation
     # menu_facturation = menu_parametrage.Add(titre="Facturation")
@@ -139,6 +140,10 @@ def GetMenuPrincipal(organisateur=None, user=None):
     # ------------------------------------ Outils ------------------------------------
     menu_outils = menu.Add(code="outils_toc", titre="Outils", icone="wrench")
 
+    menu_activite = menu_outils.Add(titre="Activités")
+    menu_activite.Add(code="activites_liste", titre="Liste des activités", icone="file-text-o")
+
+
     # Statistiques
     menu_stats = menu_outils.Add(titre="Statistiques")
     menu_stats.Add(code="statistiques", titre="Statistiques générales", icone="file-text-o")
@@ -146,9 +151,10 @@ def GetMenuPrincipal(organisateur=None, user=None):
 
     # Emails
     menu_emails = menu_outils.Add(titre="Emails")
-    #menu_emails.Add(code="contacts_liste", titre="Carnets d'adresses", icone="file-text-o")
     menu_emails.Add(code="editeur_emails", titre="Editeur d'Emails", icone="file-text-o")
     menu_emails.Add(code="emails_liste", titre="Liste des Emails", icone="file-text-o")
+    #menu_emails.Add(code="contacts_liste", titre="Carnets d'adresses", icone="file-text-o")
+
 
     # # SMS
     # menu_sms = menu_outils.Add(titre="SMS")
@@ -178,9 +184,9 @@ def GetMenuPrincipal(organisateur=None, user=None):
     # Portail
     menu_portail = menu_outils.Add(titre="Portail")
     menu_portail.Add(code="messagerie_portail", titre="Messagerie", icone="file-text-o")
-    #menu_portail.Add(code="messages_portail_liste", titre="Messages du portail", icone="file-text-o")
     menu_portail.Add(code="demandes_portail_liste", titre="Historique du portail", icone="file-text-o")
     #menu_portail.Add(code="suivi_reservations", titre="Suivi des réservations", icone="file-text-o")
+    #menu_portail.Add(code="messages_portail_liste", titre="Messages du portail", icone="file-text-o")
 
     # Dépannage
     #menu_depannage = menu_outils.Add(titre="Dépannage")
@@ -198,27 +204,27 @@ def GetMenuPrincipal(organisateur=None, user=None):
     # Liste des individus
     menu_gestion_individus = menu_individus.Add(titre="Gestion des individus")
     menu_gestion_individus.Add(code="famille_liste", titre="Liste des familles", icone="file-text-o")
+    menu_gestion_individus.Add(code="individus_doublons_liste", titre="Liste des individus en doublon", icone="file-text-o")
+    menu_gestion_individus.Add(code="effacer_familles", titre="Effacer des fiches familles", icone="file-text-o")
     # menu_gestion_individus.Add(code="individu_liste", titre="Liste des individus rattachés", icone="file-text-o")
     # menu_gestion_individus.Add(code="individus_detaches_liste", titre="Liste des individus détachés", icone="file-text-o")
-    menu_gestion_individus.Add(code="individus_doublons_liste", titre="Liste des individus en doublon", icone="file-text-o")
     # menu_gestion_individus.Add(code="individus_recherche_avancee", titre="Recherche avancée d'individus", icone="file-text-o")
-    menu_gestion_individus.Add(code="effacer_familles", titre="Effacer des fiches familles", icone="file-text-o")
 
     # Inscriptions
     menu_inscriptions = menu_individus.Add(titre="Inscriptions")
     menu_inscriptions.Add(code="inscriptions_liste", titre="Liste des inscriptions", icone="file-text-o")
     menu_inscriptions.Add(code="liste_inscriptions_attente", titre="Liste des inscriptions en attente", icone="file-text-o")
-    # menu_inscriptions.Add(code="liste_inscriptions_refus", titre="Liste des inscriptions refusées", icone="file-text-o")
     menu_inscriptions.Add(code="inscriptions_activite_liste", titre="Liste des inscriptions à une activité", icone="file-text-o")
-    # menu_inscriptions.Add(code="liste_familles_sans_inscriptions", titre="Liste des familles sans inscriptions", icone="file-text-o")
     menu_inscriptions.Add(code="imprimer_liste_inscrits", titre="Imprimer une liste personnalisée d'inscrits", icone="file-text-o")
-    # menu_inscriptions.Add(code="suivi_inscriptions", titre="Suivi des inscriptions", icone="file-text-o")
-    # menu_inscriptions.Add(code="inscriptions_impression", titre="Imprimer des inscriptions", icone="file-text-o")
-    # menu_inscriptions.Add(code="inscriptions_email", titre="Envoyer des inscriptions par Email", icone="file-text-o")
     menu_inscriptions.Add(code="inscriptions_activite_lot", titre="Créer des inscriptions en lot", icone="file-text-o")
     menu_inscriptions.Add(code="inscriptions_modifier", titre="Modifier des inscriptions par lot", icone="file-text-o")
     menu_inscriptions.Add(code="inscriptions_changer_groupe", titre="Changer de groupe par lot", icone="file-text-o")
     menu_inscriptions.Add(code="famille_attestations", titre="Génerer les attestations de présence", icone="file-text-o")
+    # menu_inscriptions.Add(code="liste_inscriptions_refus", titre="Liste des inscriptions refusées", icone="file-text-o")
+    # menu_inscriptions.Add(code="suivi_inscriptions", titre="Suivi des inscriptions", icone="file-text-o")
+    # menu_inscriptions.Add(code="inscriptions_impression", titre="Imprimer des inscriptions", icone="file-text-o")
+    # menu_inscriptions.Add(code="inscriptions_email", titre="Envoyer des inscriptions par Email", icone="file-text-o")
+    # menu_inscriptions.Add(code="liste_familles_sans_inscriptions", titre="Liste des familles sans inscriptions", icone="file-text-o")
 
     # # Inscriptions scolaires
     # menu_scolarite = menu_individus.Add(titre="Scolarité")
@@ -230,24 +236,23 @@ def GetMenuPrincipal(organisateur=None, user=None):
     menu_infos_individus.Add(code="suivi_administratif_liste", titre="Tableau de suivi administratif", icone="file-text-o")
     menu_infos_individus.Add(code="demande_approbation_liste", titre="Gestion des demandes de vérification", icone="file-text-o")
     menu_infos_individus.Add(code="edition_renseignements", titre="Edition PDF des fiches complètes de renseignements", icone="file-text-o")
+    menu_infos_individus.Add(code="informations_liste", titre="Liste des informations médicales", icone="file-text-o")
+    menu_infos_individus.Add(code="allergies_liste", titre="Liste des allergies", icone="file-text-o")
+    menu_infos_individus.Add(code="dispmed_liste", titre="Liste des dispositifs médicaux", icone="file-text-o")
+    menu_infos_individus.Add(code="maladies_liste", titre="Liste des maladies", icone="file-text-o")
+    menu_infos_individus.Add(code="edition_contacts", titre="Edition PDF des contacts", icone="file-text-o")
+    menu_infos_individus.Add(code="liste_anniversaires", titre="Edition des anniversaires", icone="file-text-o")
+    menu_infos_individus.Add(code="liste_comptes_internet", titre="Liste des comptes internet", icone="file-text-o")
+    menu_infos_individus.Add(code="mails_liste", titre="Liste des Emails", icone="file-text-o")
     # menu_infos_individus.Add(code="liste_regimes_caisses", titre="Liste des régimes et des caisses", icone="file-text-o")
     # menu_infos_individus.Add(code="liste_quotients", titre="Liste des quotients familiaux/revenus", icone="file-text-o")
     # menu_infos_individus.Add(code="liste_codes_comptables", titre="Liste des codes comptables", icone="file-text-o")
     # menu_infos_individus.Add(code="liste_titulaires_helios", titre="Liste des titulaires Hélios", icone="file-text-o")
     # menu_infos_individus.Add(code="mandats_liste", titre="Liste des mandats SEPA", icone="file-text-o")
     #menu_infos_individus.Add(code="contacts_urgence_liste", titre="Liste des contacts d'urgence", icone="file-text-o")
-    menu_infos_individus.Add(code="informations_liste", titre="Liste des informations médicales", icone="file-text-o")
     #menu_infos_individus.Add(code="regimes_alimentaires_liste", titre="Liste des régimes alimentaires", icone="file-text-o")
-    menu_infos_individus.Add(code="allergies_liste", titre="Liste des allergies", icone="file-text-o")
-    menu_infos_individus.Add(code="dispmed_liste", titre="Liste des dispositifs médicaux", icone="file-text-o")
-    menu_infos_individus.Add(code="maladies_liste", titre="Liste des maladies", icone="file-text-o")
-    menu_infos_individus.Add(code="edition_contacts", titre="Edition PDF des contacts", icone="file-text-o")
-    menu_infos_individus.Add(code="liste_anniversaires", titre="Edition des anniversaires", icone="file-text-o")
-
-
     # menu_infos_individus.Add(code="edition_informations", titre="Edition des informations et régimes", icone="file-text-o")
-    menu_infos_individus.Add(code="liste_comptes_internet", titre="Liste des comptes internet", icone="file-text-o")
-    menu_infos_individus.Add(code="mails_liste", titre="Liste des Emails", icone="file-text-o")
+
 
     # Pièces
     menu_pieces_individus = menu_individus.Add(titre="Pièces à recevoir")
@@ -261,10 +266,10 @@ def GetMenuPrincipal(organisateur=None, user=None):
 
     # Questionnaires
     menu_infos_questionnaires = menu_individus.Add(titre="Questionnaires (informations durables) ")
-    # menu_infos_questionnaires.Add(code="questionnaires_familles_liste", titre="Liste des questionnaires familiaux", icone="file-text-o")
     menu_infos_questionnaires.Add(code="questionnaires_individus_liste", titre="Réponses", icone="file-text-o")
     menu_infos_questionnaires.Add(code="questions_liste", titre="Paramétrage", icone="file-text-o")
     menu_infos_questionnaires.Add(code="questionnaires_individus_modif", titre="Modification groupée des réponses aux questionnaires", icone="file-text-o")
+    # menu_infos_questionnaires.Add(code="questionnaires_familles_liste", titre="Liste des questionnaires familiaux", icone="file-text-o")
 
     # Sondages
     menu_infos_sondages = menu_individus.Add(titre="Formulaires (informations ponctuelles)")
@@ -365,16 +370,7 @@ def GetMenuPrincipal(organisateur=None, user=None):
     # ------------------------------------ Facturation ------------------------------------
     menu_facturation = menu.Add(code="facturation_toc", titre="Facturation", icone="euro")
 
-    # Factures
-    menu_factures = menu_facturation.Add(titre="Factures")
-    menu_factures.Add(code="factures_generation", titre="Génération des factures", icone="file-text-o")
-    menu_factures.Add(code="lots_pes_liste", titre="Exports vers le Trésor Public", icone="file-text-o")
-    menu_factures.Add(code="lots_prelevements_liste", titre="Prélèvements", icone="file-text-o")
-    menu_factures.Add(code="factures_impression", titre="Imprimer des factures", icone="file-text-o")
-    menu_factures.Add(code="factures_email", titre="Envoyer des factures par Email", icone="file-text-o")
-    menu_factures.Add(code="liste_factures", titre="Liste des factures", icone="file-text-o")
-    menu_factures.Add(code="edition_recap_factures", titre="Edition du récapitulatif des factures", icone="file-text-o")
-    menu_factures.Add(code="factures_modifier", titre="Modifier des factures par lot", icone="file-text-o")
+
 
     # Rappels
     menu_rappels = menu_facturation.Add(titre="Rappels")
@@ -383,22 +379,8 @@ def GetMenuPrincipal(organisateur=None, user=None):
     menu_rappels.Add(code="rappels_impression", titre="Imprimer des lettres de rappel", icone="file-text-o")
     menu_rappels.Add(code="rappels_email", titre="Envoyer des lettres de rappel par Email", icone="file-text-o")
 
-    # # Attestations fiscales
-    # menu_attestations_fiscales = menu_facturation.Add(titre="Attestations fiscales")
-    # menu_attestations_fiscales.Add(code="attestations_fiscales_generation", titre="Génération des attestations fiscales", icone="file-text-o")
-    # menu_attestations_fiscales.Add(code="liste_attestations_fiscales", titre="Liste des attestations fiscales", icone="file-text-o")
-    # menu_attestations_fiscales.Add(code="attestations_fiscales_impression", titre="Imprimer des attestations fiscales", icone="file-text-o")
-    # menu_attestations_fiscales.Add(code="attestations_fiscales_email", titre="Envoyer des attestations fiscales par Email", icone="file-text-o")
 
-    # Prestations
-    menu_prestations = menu_facturation.Add(titre="Prestations")
-    menu_prestations.Add(code="liste_prestations", titre="Liste des prestations", icone="file-text-o")
-    menu_prestations.Add(code="liste_deductions", titre="Liste des déductions", icone="file-text-o")
-    menu_prestations.Add(code="liste_soldes", titre="Liste des soldes", icone="file-text-o")
-    menu_prestations.Add(code="synthese_prestations", titre="Synthèse des prestations", icone="file-text-o")
-    menu_prestations.Add(code="edition_prestations", titre="Edition PDF des prestations (export compta)", icone="file-text-o")
-    menu_prestations.Add(code="edition_deductions", titre="Edition PDF des déductions (export compta)", icone="file-text-o")
-    menu_prestations.Add(code="recalculer_prestations", titre="Recalculer des prestations", icone="file-text-o")
+
 
     # Aides
     menu_aides = menu_facturation.Add(titre="Aides")
@@ -419,7 +401,17 @@ def GetMenuPrincipal(organisateur=None, user=None):
 
 
     # ------------------------------------ Règlements ------------------------------------
-    menu_reglements = menu.Add(code="reglements_toc", titre="Règlements", icone="money")
+    menu_reglements = menu.Add(code="reglements_toc", titre="Finances", icone="money")
+
+    # Prestations
+    menu_prestations = menu_reglements.Add(titre="Prestations")
+    menu_prestations.Add(code="liste_prestations", titre="Liste des prestations", icone="file-text-o")
+    menu_prestations.Add(code="liste_deductions", titre="Liste des déductions", icone="file-text-o")
+    menu_prestations.Add(code="liste_soldes", titre="Liste des soldes", icone="file-text-o")
+    menu_prestations.Add(code="synthese_prestations", titre="Synthèse des prestations", icone="file-text-o")
+    menu_prestations.Add(code="edition_prestations", titre="Edition PDF des prestations (export compta)", icone="file-text-o")
+    menu_prestations.Add(code="edition_deductions", titre="Edition PDF des déductions (export compta)", icone="file-text-o")
+    menu_prestations.Add(code="recalculer_prestations", titre="Recalculer des prestations", icone="file-text-o")
 
     # Règlements
     menu_listes = menu_reglements.Add(titre="Règlements")
@@ -429,6 +421,17 @@ def GetMenuPrincipal(organisateur=None, user=None):
     #menu_listes.Add(code="reglements_lot_factures", titre="Liste des règlements associés à un lot de factures", icone="file-text-o")
     #menu_listes.Add(code="synthese_modes_reglements", titre="Synthèse des modes de règlements", icone="file-text-o")
     menu_listes.Add(code="corriger_ventilation", titre="Corriger la ventilation des règlements", icone="file-text-o")
+
+    # Factures
+    menu_factures = menu_reglements.Add(titre="Factures")
+    menu_factures.Add(code="factures_generation", titre="Génération des factures", icone="file-text-o")
+    menu_factures.Add(code="lots_pes_liste", titre="Exports vers le Trésor Public", icone="file-text-o")
+    menu_factures.Add(code="lots_prelevements_liste", titre="Prélèvements", icone="file-text-o")
+    menu_factures.Add(code="factures_impression", titre="Imprimer des factures", icone="file-text-o")
+    menu_factures.Add(code="factures_email", titre="Envoyer des factures par Email", icone="file-text-o")
+    menu_factures.Add(code="liste_factures", titre="Liste des factures", icone="file-text-o")
+    menu_factures.Add(code="edition_recap_factures", titre="Edition du récapitulatif des factures", icone="file-text-o")
+    menu_factures.Add(code="factures_modifier", titre="Modifier des factures par lot", icone="file-text-o")
 
 
     # Dépôts
