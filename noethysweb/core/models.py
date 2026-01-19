@@ -4135,7 +4135,7 @@ class ComptaOperation(models.Model):
     ref_piece = models.CharField(verbose_name="Référence pièce", max_length=200, blank=True, null=True)
     compte = models.ForeignKey(CompteBancaire, verbose_name="Compte bancaire", on_delete=models.PROTECT)
     releve = models.ForeignKey(ComptaReleve, verbose_name="Relevé bancaire", on_delete=models.PROTECT, blank=True, null=True)
-    montant = models.DecimalField(verbose_name="Montant", max_digits=10, decimal_places=2, default=0.0)
+    montant = models.DecimalField(verbose_name="Montant", max_digits=10, decimal_places=2)
     observations = models.TextField(verbose_name="Observations", blank=True, null=True)
     virement = models.ForeignKey(ComptaVirement, verbose_name="Virement", on_delete=models.CASCADE, blank=True, null=True)
     document = models.FileField(verbose_name="Pièce justificative", storage=get_storage("justifs"), upload_to=get_uuid_path, blank=True, null=True)
@@ -4157,7 +4157,7 @@ class ComptaVentilation(models.Model):
     categorie = models.ForeignKey(ComptaCategorie, verbose_name="Catégorie", on_delete=models.PROTECT)
     analytique = models.ForeignKey(ComptaAnalytique, verbose_name="Analytique", on_delete=models.PROTECT)
     libelle = models.CharField(verbose_name="Libellé", max_length=200, blank=True, null=True)
-    montant = models.DecimalField(verbose_name="Montant", max_digits=10, decimal_places=2, default=0.0)
+    montant = models.DecimalField(verbose_name="Montant", max_digits=10, decimal_places=2)
     date_budget = models.DateField(verbose_name="Date budget")
 
     class Meta:

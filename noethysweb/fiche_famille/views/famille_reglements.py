@@ -47,7 +47,7 @@ def Get_ventilation(request):
             prestation.reste_ventilation = prestation.montant - ventilation_reglement - ventilation_anterieure
             liste_prestations.append(prestation)
 
-    context = {"prestations": liste_prestations, "mode_regroupement": mode_regroupement}
+    context = {"prestations": liste_prestations, "mode_regroupement": mode_regroupement, "encaissement": False}
     return render(request, "fiche_famille/widgets/ventilation_ajax.html", context)
 
 
@@ -64,6 +64,7 @@ def On_selection_mode_reglement(request):
             {"id": emetteur.pk, "text": emetteur.nom, "image": emetteur.image.name}
             for emetteur in emetteurs
         ],
+        "encaissement": mode.encaissement  #
     })
 
 def Modifier_payeur(request):
@@ -305,9 +306,6 @@ class Ajouter(ClasseCommune, crud.Ajouter):
     def get_success_url(self):
         """ Renvoie vers la liste après le formulaire """
         famille = Famille.objects.get(pk=self.kwargs.get('idfamille', None))
-        if famille.email_recus and self.object:
-            # Si famille abonnée à l'envoi des reçus par email
-            return reverse_lazy("reglement_recu_auto", kwargs={"idfamille": famille.pk, "idreglement": self.object.pk if self.object else 0})
         url = self.url_ajouter if "SaveAndNew" in self.request.POST else self.url_liste
         return reverse_lazy(url, kwargs={"idfamille": famille.pk})
 
