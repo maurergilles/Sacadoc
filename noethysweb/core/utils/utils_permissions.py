@@ -19,6 +19,9 @@ def GetPermissionsPossibles(organisateur=None):
             for commande in sous_menu.GetChildren():
                 liste_permissions.append((commande.code, "%s | %s" % (commande.parent.parent.titre, commande.titre)))
 
+    #Personnalisé
+    liste_permissions.append(("avances_regul", "Comptabilité | Régulariser les avances"))
+
     # Fiche famille
     for commande in LISTE_ONGLETS_FAMILLES:
         liste_permissions.append(("famille_%s" % commande["code"], "Fiche famille | %s" % commande["label"]))

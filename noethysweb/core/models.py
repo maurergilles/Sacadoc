@@ -564,6 +564,7 @@ class ModeReglement(models.Model):
     type_choix = [("banque", "Banque"), ("caisse", "Caisse")]
     type_comptable = models.CharField(verbose_name="Type comptable", max_length=100, choices=type_choix, default="banque", blank=True, null=True)
     code_compta = models.CharField(verbose_name="Code comptable", max_length=200, blank=True, null=True)
+    encaissement = models.BooleanField(verbose_name="Encaissé par l'organisateur", default=False, help_text="(n'est pas inclus dans la compta automatiquement)")
 
     class Meta:
         db_table = 'modes_reglements'
@@ -816,6 +817,8 @@ class TypeMaladie(models.Model):
 class TypeDeduction(models.Model):
     idtype_deduction = models.AutoField(verbose_name="ID", db_column='IDtype_deduction', primary_key=True)
     nom = models.CharField(verbose_name="Nom", max_length=200)
+    structure = models.ForeignKey(Structure, verbose_name="Structure associée", blank=False, null=False, on_delete=models.PROTECT)
+    remb = models.BooleanField(verbose_name="Déduction payée par un tier", default=True, help_text="")
 
     class Meta:
         db_table = 'types_deductions'
@@ -2624,6 +2627,7 @@ class Deduction(models.Model):
     montant = models.DecimalField(verbose_name="Montant", max_digits=10, decimal_places=2, default=0.0)
     label = models.ForeignKey(TypeDeduction, verbose_name="Label", on_delete=models.PROTECT, blank=True, null=True)
     aide = models.ForeignKey(Aide, verbose_name="Aide", on_delete=models.PROTECT, blank=True, null=True)
+    remb = models.BooleanField(verbose_name="Déduction remboursée", default=False, help_text="")
 
     class Meta:
         db_table = 'deductions'
@@ -4041,6 +4045,7 @@ class ComptaCategorie(models.Model):
     compte_comptable = models.ForeignKey(ComptaCompteComptable, verbose_name="Compte comptable", on_delete=models.PROTECT, blank=True, null=True)
     structure = models.ForeignKey(Structure, verbose_name="Structure", on_delete=models.PROTECT, blank=True, null=True)
     bilan = models.BooleanField(verbose_name="Compte intégré au bilan", default=True)
+    orga = models.BooleanField(verbose_name="Compte lié à l'organisateur (part orga., cotisations,...)", default=False)
 
     class Meta:
         db_table = "compta_categories"
@@ -4130,12 +4135,12 @@ class ComptaOperation(models.Model):
     ref_piece = models.CharField(verbose_name="Référence pièce", max_length=200, blank=True, null=True)
     compte = models.ForeignKey(CompteBancaire, verbose_name="Compte bancaire", on_delete=models.PROTECT)
     releve = models.ForeignKey(ComptaReleve, verbose_name="Relevé bancaire", on_delete=models.PROTECT, blank=True, null=True)
-    montant = models.DecimalField(verbose_name="Montant", max_digits=10, decimal_places=2, default=0.0)
+    montant = models.DecimalField(verbose_name="Montant", max_digits=10, decimal_places=2)
     observations = models.TextField(verbose_name="Observations", blank=True, null=True)
     virement = models.ForeignKey(ComptaVirement, verbose_name="Virement", on_delete=models.CASCADE, blank=True, null=True)
     document = models.FileField(verbose_name="Pièce justificative", storage=get_storage("justifs"), upload_to=get_uuid_path, blank=True, null=True)
     avance = models.ForeignKey(ComptaAvance, verbose_name="Avance", on_delete=models.PROTECT, blank=True, null=True)
-    remb_avance = models.IntegerField( verbose_name="Référence de régularisation", blank=True, null=True, help_text="Identifiant utilisé pour relier les opérations entre elles (ex: ID de régularisation)")
+    remb_avance = models.IntegerField( verbose_name="Référence de régularisation", default=0, blank=True, null=True, help_text="Identifiant utilisé pour relier les opérations entre elles (ex: ID de régularisation)")
     regul_avance = models.BooleanField(verbose_name="Opération de régularisation d'avance", default=False)
     class Meta:
         db_table = "compta_operations"
@@ -4152,7 +4157,7 @@ class ComptaVentilation(models.Model):
     categorie = models.ForeignKey(ComptaCategorie, verbose_name="Catégorie", on_delete=models.PROTECT)
     analytique = models.ForeignKey(ComptaAnalytique, verbose_name="Analytique", on_delete=models.PROTECT)
     libelle = models.CharField(verbose_name="Libellé", max_length=200, blank=True, null=True)
-    montant = models.DecimalField(verbose_name="Montant", max_digits=10, decimal_places=2, default=0.0)
+    montant = models.DecimalField(verbose_name="Montant", max_digits=10, decimal_places=2)
     date_budget = models.DateField(verbose_name="Date budget")
 
     class Meta:

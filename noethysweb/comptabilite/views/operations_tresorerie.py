@@ -226,12 +226,14 @@ class Page(crud.Page):
 
     def get_success_url(self):
         """ Renvoie vers la liste après le formulaire """
-        url = self.url_liste
         if "SaveAndNew" in self.request.POST:
-            if getattr(self, "type", None):
+            # Redirection selon le type d'opération
+            if getattr(self, "type", None) == "debit":
                 url = self.url_ajouter_debit
             else:
                 url = self.url_ajouter_credit
+        else:
+            url = self.url_liste
         return reverse_lazy(url, kwargs={'categorie': self.Get_categorie()})
 
     def form_valid(self, form):
@@ -288,7 +290,22 @@ class Page(crud.Page):
             return self.form_invalid(form)
 
         # --- Sauvegarde du formulaire principal ---
-        self.object = form.save()
+        self.object = form.save(commit=False)
+
+        # --- Si une déduction est sélectionnée ---
+        deduction = form.cleaned_data.get("deduction")
+        if deduction:
+            # 1️⃣ On marque la déduction comme remboursée
+            deduction.remb = True
+            deduction.save(update_fields=["remb"])
+
+            # 2️⃣ On modifie le libellé de l'opération pour ajouter "(Déduction XX€)"
+            montant_deduction = deduction.montant
+            famille_nom = deduction.famille.nom
+            self.object.libelle = f"{self.object.libelle} (Famille : {famille_nom})"
+
+        # --- Sauvegarde définitive ---
+        self.object.save()
 
         # --- Récupération des ventilations existantes liées à cette opération ---
         ventilations_existantes = {
@@ -344,10 +361,14 @@ class Liste(Page, crud.Liste):
 
         filtre_inclusion = Q(comptaoperation__avance__isnull=True) | Q(comptaoperation__regul_avance=True)
 
+        # On ajoute l'exclusion des comptes orga
+        filtre_exclusion_orga = Q(comptaoperation__comptaventilation__categorie__orga=False)
+
         stats = CompteBancaire.objects.filter(pk=self.Get_categorie()).aggregate(
             total_debit=Sum(
                 Case(
-                    When(Q(comptaoperation__type="debit") & filtre_inclusion, then=F("comptaoperation__montant")),
+                    When(Q(comptaoperation__type="debit") & filtre_inclusion & filtre_exclusion_orga,
+                         then=F("comptaoperation__montant")),
                     output_field=DecimalField(),
                     default=0
                 )
@@ -355,20 +376,23 @@ class Liste(Page, crud.Liste):
 
             total_credit=Sum(
                 Case(
-                    When(Q(comptaoperation__type="credit") & filtre_inclusion, then=F("comptaoperation__montant")),
+                    When(Q(comptaoperation__type="credit") & filtre_inclusion & filtre_exclusion_orga,
+                         then=F("comptaoperation__montant")),
                     output_field=DecimalField(),
                     default=0
                 )
             ),
             solde_final=Sum(
                 Case(
-                    When(Q(comptaoperation__type="credit") & filtre_inclusion, then=F("comptaoperation__montant")),
+                    When(Q(comptaoperation__type="credit") & filtre_inclusion & filtre_exclusion_orga,
+                         then=F("comptaoperation__montant")),
                     output_field=DecimalField(),
                     default=0
                 )
             ) - Sum(
                 Case(
-                    When(Q(comptaoperation__type="debit") & filtre_inclusion, then=F("comptaoperation__montant")),
+                    When(Q(comptaoperation__type="debit") & filtre_inclusion & filtre_exclusion_orga,
+                         then=F("comptaoperation__montant")),
                     output_field=DecimalField(),
                     default=0
                 )
@@ -501,9 +525,17 @@ class Liste(Page, crud.Liste):
 
 class Ajouter(Page, crud.Ajouter):
     form_class = Formulaire
-    type = "debit"
+    type = None
+    def dispatch(self, request, *args, **kwargs):
+        # récupère le type passé depuis as_view(type=...)
+        self.type = kwargs.pop('type', getattr(self, 'type', 'debit'))
+        return super().dispatch(request, *args, **kwargs)
 
-
+    def get_form_kwargs(self, **kwargs):
+        form_kwargs = super().get_form_kwargs(**kwargs)
+        # Passe le type au formulaire
+        form_kwargs['type'] = self.type
+        return form_kwargs
 class Modifier(Page, crud.Modifier):
     form_class = Formulaire
 

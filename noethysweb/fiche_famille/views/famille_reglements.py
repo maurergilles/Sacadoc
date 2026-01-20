@@ -47,7 +47,7 @@ def Get_ventilation(request):
             prestation.reste_ventilation = prestation.montant - ventilation_reglement - ventilation_anterieure
             liste_prestations.append(prestation)
 
-    context = {"prestations": liste_prestations, "mode_regroupement": mode_regroupement}
+    context = {"prestations": liste_prestations, "mode_regroupement": mode_regroupement, "encaissement": False}
     return render(request, "fiche_famille/widgets/ventilation_ajax.html", context)
 
 
@@ -55,10 +55,17 @@ def On_selection_mode_reglement(request):
     idmode = request.POST.get("idmode")
     if not idmode or idmode == "None":
         return JsonResponse({"numero_piece": None, "emetteurs": []})
+
     mode = ModeReglement.objects.get(pk=int(idmode))
     emetteurs = Emetteur.objects.filter(mode_id=int(idmode)).order_by("nom")
-    return JsonResponse({"numero_piece": mode.numero_piece, "emetteurs": [{"id": emetteur.pk, "text": emetteur.nom, "image": emetteur.image.name} for emetteur in emetteurs]})
-
+    return JsonResponse({
+        "numero_piece": mode.numero_piece,
+        "emetteurs": [
+            {"id": emetteur.pk, "text": emetteur.nom, "image": emetteur.image.name}
+            for emetteur in emetteurs
+        ],
+        "encaissement": mode.encaissement  #
+    })
 
 def Modifier_payeur(request):
     action = request.POST.get("action")
@@ -216,10 +223,11 @@ class ClasseCommune(Page):
             form.add_error(None, "Erreur de lecture de la ventilation.")
             return self.form_invalid(form)
 
-        # Calcul du total ventilé
-        total_ventilation = sum(Decimal(item["montant"]) for item in liste_ventilations)
+        # Calcul du total ventilé avec une valeur de départ Decimal
+        total_ventilation = sum((Decimal(item["montant"]) for item in liste_ventilations), Decimal('0'))
         montant_reglement = form.cleaned_data["montant"]
-        # Arrondir les deux montants à 2 décimales (comme des montants en euros)
+
+        # Arrondir les deux montants à 2 décimales
         total_ventilation = total_ventilation.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
         montant_reglement = montant_reglement.quantize(Decimal('0.01'), rounding=ROUND_HALF_UP)
 
@@ -274,11 +282,18 @@ class ClasseCommune(Page):
         # --- Crée ou met à jour les ventilations comptables ---
         for item in liste_ventilations:
             prestation = Prestation.objects.get(pk=item["idprestation"])
+
+            # Choisir la catégorie : spéciale si mode encaissement
+            if reglement.mode.encaissement:
+                categorie_id = 33  # ID de ta catégorie "Règlements encaissement"
+            else:
+                categorie_id = 1  # ID normal, à adapter selon ton DB
+
             ComptaVentilation.objects.update_or_create(
                 operation=compta_op,
                 defaults={
-                    "categorie_id": 1,  # à adapter selon ta DB
-                    "analytique_id": 1,  # idem
+                    "categorie_id": categorie_id,
+                    "analytique_id": 1,  # à adapter
                     "montant": reglement.montant,
                     "date_budget": reglement.date,
                 }
@@ -292,9 +307,6 @@ class Ajouter(ClasseCommune, crud.Ajouter):
     def get_success_url(self):
         """ Renvoie vers la liste après le formulaire """
         famille = Famille.objects.get(pk=self.kwargs.get('idfamille', None))
-        if famille.email_recus and self.object:
-            # Si famille abonnée à l'envoi des reçus par email
-            return reverse_lazy("reglement_recu_auto", kwargs={"idfamille": famille.pk, "idreglement": self.object.pk if self.object else 0})
         url = self.url_ajouter if "SaveAndNew" in self.request.POST else self.url_liste
         return reverse_lazy(url, kwargs={"idfamille": famille.pk})
 
