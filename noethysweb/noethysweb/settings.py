@@ -38,12 +38,6 @@ AXES_META_PRECEDENCE_ORDER = [
     'REMOTE_ADDR'
 ]
 
-# CAPTCHA
-CAPTCHA_FONT_SIZE = 30
-CAPTCHA_IMAGE_SIZE = (90, 40)
-CAPTCHA_LETTER_ROTATION = (-55, 55)
-CAPTCHA_CHALLENGE_FUNCT = "core.utils.utils_captcha.random_digit_challenge"
-
 # UPLOAD PHOTOS
 UPLOAD_FORM_PARALLEL_UPLOAD = False
 UPLOAD_FORM_MAX_FILE_SIZE_MB = 10
@@ -97,7 +91,7 @@ INSTALLED_APPS = [
     'anymail',
     'formtools',
     'axes',
-    'captcha',
+    'turnstile',
     'django_extensions',
     'upload_form',
     'dbbackup',
@@ -309,6 +303,7 @@ CSP_SCRIPT_SRC = (
     "https://ajax.googleapis.com",
     "https://cdnjs.cloudflare.com",
     "https://cdn.jsdelivr.net",
+    "https://challenges.cloudflare.com",
 )
 
 CSP_FRAME_SRC = (
@@ -316,6 +311,7 @@ CSP_FRAME_SRC = (
     "https://www.youtube.com",
     "https://www.youtube-nocookie.com",
     "https://docs.google.com",
+    "https://challenges.cloudflare.com",
 )
 
 CSP_FRAME_ANCESTORS = (
@@ -338,3 +334,7 @@ if DEBUG:
     ENABLE_DEBUG_TOOLBAR = True
     MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")
     INSTALLED_APPS.append("debug_toolbar")
+
+# Turnstile Captcha
+TURNSTILE_SITEKEY = '<your sitekey>'
+TURNSTILE_SECRET = '<your secret key>'

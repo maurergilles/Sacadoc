@@ -27,15 +27,7 @@
             {{ form.password }}
         </div>
 
-        {% if form.captcha.errors %}
-            <div class="alert alert-danger">
-                {% blocktrans %}Vous devez recopier le code de sécurité ci-dessous{% endblocktrans %}
-            </div>
-        {% endif %}
-
-        <div>
-            {{ form.captcha }}
-        </div>
+        {{ form.turnstile }}
 
         <button name="login" id="login" class="btn btn-block btn-primary login-btn mb-4" type="submit">{% blocktrans %}Se connecter{% endblocktrans %}</button>
 
