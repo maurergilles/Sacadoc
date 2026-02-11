@@ -318,6 +318,11 @@ CSP_FRAME_ANCESTORS = (
     "'self'",
 )
 
+# Turnstile Captcha
+TURNSTILE_SITEKEY = '1x00000000000000000000AA'
+TURNSTILE_SECRET = '1x0000000000000000000000000000000AA'
+TURNSTILE_ENABLE = False
+
 # Chargement des settings de production
 try:
     from .settings_production import *
@@ -334,8 +339,3 @@ if DEBUG:
     ENABLE_DEBUG_TOOLBAR = True
     MIDDLEWARE.insert(0, "debug_toolbar.middleware.DebugToolbarMiddleware")
     INSTALLED_APPS.append("debug_toolbar")
-
-# Turnstile Captcha
-TURNSTILE_SITEKEY = '1x00000000000000000000AA'
-TURNSTILE_SECRET = '1x0000000000000000000000000000000AA'
-TURNSTILE_ENABLE = False
