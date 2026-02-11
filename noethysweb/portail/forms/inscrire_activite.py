@@ -1,30 +1,23 @@
 # -*- coding: utf-8 -*-
-#  Copyright (c) 2019-2021 Ivan LUCAS.
-#  Noethysweb, application de gestion multi-activités.
-#  Distribué sous licence GNU GPL.
 
 import datetime
+import json
 from django import forms
-from django.forms import ModelForm, CheckboxSelectMultiple, ModelMultipleChoiceField, HiddenInput
+from django.forms import ModelForm
 from django.db.models import Q
 from django.core.validators import FileExtensionValidator
 from django.utils.translation import gettext_lazy as _
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Hidden, HTML, Div, Field
-from crispy_forms.bootstrap import Field
-from core.models import Activite, Rattachement, Groupe, PortailRenseignement, CategorieTarif, NomTarif, Tarif, Structure, TarifLigne, PortailDocument
+from core.models import (Activite, Rattachement, Groupe, PortailRenseignement,
+                         NomTarif, Tarif, Structure, TarifLigne)
 from core.utils.utils_commandes import Commandes
 from portail.forms.fiche import FormulaireBase
 from individus.utils import utils_pieces_manquantes
 
 
 class Formulaire_extra(FormulaireBase, forms.Form):
-    groupe = forms.ModelChoiceField(
-        label=_("Groupe"),
-        queryset=Groupe.objects.none(),
-        required=True,
-        help_text=_("Sélectionnez le groupe pour l'inscription.")
-    )
+    """ Formulaire dynamique pour les tarifs et pièces jointes """
 
     def __init__(self, *args, **kwargs):
         activite = kwargs.pop("activite", None)
@@ -37,15 +30,9 @@ class Formulaire_extra(FormulaireBase, forms.Form):
         self.helper.label_class = 'col-md-3'
         self.helper.field_class = 'col-md-9'
 
-        # 1. Configuration du Groupe
-        groupes = Groupe.objects.filter(activite=activite).order_by("nom")
-        self.fields["groupe"].queryset = groupes
-        if groupes.count() == 1:
-            self.fields["groupe"].initial = groupes.first()
+        layout_elements = []
 
-        layout_elements = [Field("groupe")]
-
-        # 2. Image de l'activité (juste après le groupe)
+        # 1. Image de l'activité
         if activite and activite.image:
             layout_elements.append(HTML(
                 f'<div class="text-center my-3">'
@@ -53,96 +40,91 @@ class Formulaire_extra(FormulaireBase, forms.Form):
                 f'</div>'
             ))
 
-        # 3. Tarifs (Radio boutons)
-        noms_tarifs = NomTarif.objects.filter(activite=activite, visible=True).order_by("nom")
-        for nt in noms_tarifs:
-            tarifs = Tarif.objects.filter(nom_tarif=nt, activite=activite, visible=True)
-            if tarifs.exists():
-                f_name = f"tarifs_{nt.idnom_tarif}"
-                choices = []
-                for t in tarifs:
-                    ligne = TarifLigne.objects.filter(tarif=t).first()
-                    montant = f"{ligne.montant_unique:,.2f} €".replace('.', ',') if ligne else "0,00 €"
-                    choices.append((t.pk, f"{t.description} ({montant})"))
+        # 2. Tarifs (Radio boutons)
+        if activite:
+            noms_tarifs = NomTarif.objects.filter(activite=activite, visible=True).order_by("nom")
+            for nt in noms_tarifs:
+                tarifs = Tarif.objects.filter(nom_tarif=nt, activite=activite, visible=True)
+                if tarifs.exists():
+                    f_name = f"tarifs_{nt.idnom_tarif}"
+                    choices = []
+                    for t in tarifs:
+                        ligne = TarifLigne.objects.filter(tarif=t).first()
+                        montant = f"{ligne.montant_unique:,.2f} €".replace('.', ',') if ligne else "0,00 €"
+                        choices.append((t.pk, f"{t.description} ({montant})"))
 
-                self.fields[f_name] = forms.ModelChoiceField(
-                    label=nt.nom,
-                    queryset=tarifs,
-                    widget=forms.RadioSelect(),
-                    required=True
-                )
-                self.fields[f_name].choices = choices
-                layout_elements.append(Field(f_name))
-
-        # 4. Pièces jointes
-        if activite.portail_inscriptions_imposer_pieces:
-            pieces = utils_pieces_manquantes.Get_liste_pieces_necessaires(activite, famille, individu)
-            for p in pieces:
-                if not p["valide"]:
-                    f_id = f"document_{p['type_piece'].pk}"
-                    self.fields[f_id] = forms.FileField(
-                        label=p['type_piece'].nom,
-                        required=True,
-                        validators=[FileExtensionValidator(allowed_extensions=['pdf', 'png', 'jpg'])]
+                    self.fields[f_name] = forms.ModelChoiceField(
+                        label=nt.nom,
+                        queryset=tarifs,
+                        widget=forms.RadioSelect(),
+                        required=False  # Optionnel pour pouvoir décocher
                     )
-                    layout_elements.append(Field(f_id))
+                    self.fields[f_name].choices = choices
+                    layout_elements.append(Field(f_name))
+
+            # 3. Pièces jointes
+            if activite.portail_inscriptions_imposer_pieces:
+                pieces = utils_pieces_manquantes.Get_liste_pieces_necessaires(activite, famille, individu)
+                for p in pieces:
+                    if not p["valide"]:
+                        f_id = f"document_{p['type_piece'].pk}"
+                        self.fields[f_id] = forms.FileField(
+                            label=p['type_piece'].nom,
+                            required=True,
+                            validators=[FileExtensionValidator(allowed_extensions=['pdf', 'png', 'jpg'])]
+                        )
+                        layout_elements.append(Field(f_id))
 
         self.helper.layout = Layout(*layout_elements)
 
 
 class Formulaire(FormulaireBase, ModelForm):
-    activite = forms.ModelChoiceField(label=_("Activité"), queryset=Activite.objects.none(), required=True, help_text=_("Sélectionnez l'activité souhaitée dans la liste."))
-    structure = forms.ModelChoiceField(label=_("Structures"), queryset=Structure.objects.none(), required=True, help_text=_("Sélectionnez la structure souhaitée dans la liste."))
-    groupe = forms.ModelChoiceField(
-        label=_("Groupe"),
-        queryset=Groupe.objects.none(),
-        required=True
-    )
+    # On utilise des QuerySets larges pour que Django accepte la validation des IDs envoyés en AJAX
+    activite = forms.ModelChoiceField(label=_("Activité"), queryset=Activite.objects.all(), required=True)
+    structure = forms.ModelChoiceField(label=_("Structures"), queryset=Structure.objects.all(), required=True)
+    groupe = forms.ModelChoiceField(label=_("Groupe"), queryset=Groupe.objects.all(), required=True)
+
     class Meta:
         model = PortailRenseignement
-        fields = "__all__"
-        labels = {
-            "individu": _("Individu"),
-        }
-        help_texts = {
-            "individu": _("Sélectionnez le membre de la famille à inscrire."),
-        }
+        # On liste explicitement les champs pour s'assurer qu'ils sont traités
+        fields = ["individu", "famille", "structure", "activite", "groupe", "etat", "categorie", "code"]
 
     def __init__(self, *args, **kwargs):
         super(Formulaire, self).__init__(*args, **kwargs)
+
+        # Initialisation des valeurs par défaut pour les champs cachés
+        if self.request:
+            self.fields["famille"].initial = self.request.user.famille.pk
+        self.fields["etat"].initial = "ATTENTE"
+        self.fields["categorie"].initial = "activites"
+        self.fields["code"].initial = "inscrire_activite"
+
         self.helper = FormHelper()
         self.helper.form_id = 'portail_inscrire_activite_form'
         self.helper.form_method = 'post'
-
         self.helper.form_class = 'form-horizontal'
         self.helper.label_class = 'col-md-2 col-form-label'
         self.helper.field_class = 'col-md-10'
-        self.helper.use_custom_control = False
-        self.helper.attrs = {'enctype': 'multipart/form-data'}
+        self.helper.attrs = {'enctype': 'multipart/form-data', 'novalidate': ''}  # novalidate aide pour le focusable
 
-        # Individu (avec filtrage de la catégorie 2)
+        # Filtrage des individus de la famille
         rattachements = Rattachement.objects.select_related("individu").filter(
-            famille=self.request.user.famille).exclude(individu__in=self.request.user.famille.individus_masques.all()).order_by("categorie")
+            famille=self.request.user.famille).exclude(
+            individu__in=self.request.user.famille.individus_masques.all()).order_by("categorie")
+        self.fields["individu"].choices = [(r.individu_id, r.individu.Get_nom()) for r in rattachements]
 
-        self.fields["individu"].choices = [(rattachement.individu_id, rattachement.individu.Get_nom()) for rattachement
-                                           in rattachements]
-        self.fields["individu"].required = True
-
-        # Activité
-        conditions = (Q(visible=True) & Q(portail_inscriptions_affichage="TOUJOURS") | (Q(portail_inscriptions_affichage="PERIODE") & Q(
-            portail_inscriptions_date_debut__lte=datetime.datetime.now()) & Q(
-            portail_inscriptions_date_fin__gte=datetime.datetime.now())))
+        # On réduit le QuerySet d'affichage pour l'activité (mais Django garde .all() pour valider)
+        conditions = (Q(visible=True) & Q(portail_inscriptions_affichage="TOUJOURS") |
+                      (Q(portail_inscriptions_affichage="PERIODE") &
+                       Q(portail_inscriptions_date_debut__lte=datetime.datetime.now()) &
+                       Q(portail_inscriptions_date_fin__gte=datetime.datetime.now())))
         self.fields["activite"].queryset = Activite.objects.filter(conditions).order_by("nom")
 
-        conditions = (Q(visible=True))
-        self.fields["structure"].queryset = Structure.objects.filter(conditions).order_by("nom")
-
-        # Affichage
         self.helper.layout = Layout(
-            Hidden("famille", value=self.request.user.famille.pk),
-            Hidden("etat", value="ATTENTE"),
-            Hidden("categorie", value="activites"),
-            Hidden("code", value="inscrire_activite"),
+            Hidden("famille", self.fields["famille"].initial),
+            Hidden("etat", self.fields["etat"].initial),
+            Hidden("categorie", self.fields["categorie"].initial),
+            Hidden("code", self.fields["code"].initial),
             Field("individu"),
             Field("structure"),
             Field("activite"),
@@ -150,7 +132,7 @@ class Formulaire(FormulaireBase, ModelForm):
             Div(id="form_extra"),
             HTML(EXTRA_SCRIPT),
             Commandes(
-                enregistrer_label="<i class='fa fa-send margin-r-5'></i>%s" % _("Envoyer la demande d'inscription"),
+                enregistrer_label="<i class='fa fa-send mr-2'></i>Envoyer la demande",
                 annuler_url="{% url 'portail_activites' %}", ajouter=False, aide=False, css_class="pull-right"),
         )
 

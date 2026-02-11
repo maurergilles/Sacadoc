@@ -86,13 +86,6 @@
                     <i class="fa fa-paper-plane mr-2"></i> Envoyer la demande
                 </button>
             </div>
-
-            <div class="d-none">
-                {{ form.famille }}
-                {{ form.etat }}
-                {{ form.categorie }}
-                {{ form.code }}
-            </div>
         </form>
 
         <style>
@@ -196,8 +189,14 @@ $(function () {
     // --- 3. Soumission du Formulaire ---
     $form.on('submit', function (e) {
         e.preventDefault();
+        console.log("Tentative d'envoi du formulaire...");
 
-        // On utilise FormData pour gérer l'envoi de fichiers (pièces jointes)
+        // Vérification de sécurité : est-ce que les champs obligatoires sont là ?
+        if (!$("#id_individu").val() || !$("#id_structure").val() || !$("#id_activite").val() || !$("#id_groupe").val()) {
+            toastr.error("Veuillez remplir tous les champs (Individu, Structure, Activité et Groupe).");
+            return false;
+        }
+
         const formData = new FormData(this);
         const $btn = $("#btn_submit");
 
@@ -211,11 +210,21 @@ $(function () {
             contentType: false,
             processData: false,
             success: function(data) {
-                window.location.href = data.url;
+                console.log("Succès :", data);
+                if (data.url) {
+                    window.location.href = data.url;
+                } else {
+                    location.reload();
+                }
             },
             error: function(xhr) {
-                $btn.prop('disabled', false).html('<i class="fa fa-check mr-2"></i> Valider l\'inscription');
-                const errorMsg = xhr.responseJSON ? xhr.responseJSON.erreur : "Une erreur est survenue.";
+                console.error("Erreur lors de l'envoi :", xhr.responseText);
+                $btn.prop('disabled', false).html('<i class="fa fa-paper-plane mr-2"></i> Envoyer la demande');
+
+                let errorMsg = "Une erreur est survenue.";
+                if (xhr.responseJSON && xhr.responseJSON.erreur) {
+                    errorMsg = xhr.responseJSON.erreur;
+                }
                 toastr.error(errorMsg);
             }
         });
@@ -225,6 +234,21 @@ $(function () {
     if($("#id_structure").val()) {
         // Optionnel : trigger si déjà rempli au chargement
     }
+
+    // Permettre de décocher les tarifs (RadioButtons)
+    $(document).on('click', 'input[type="radio"]', function() {
+        var $radio = $(this);
+        // Si le bouton était déjà coché avant le clic
+        if ($radio.data('waschecked') === true) {
+            $radio.prop('checked', false);
+            $radio.data('waschecked', false);
+            $radio.trigger('change'); // Notifie le reste du form
+        } else {
+            // On décoche virtuellement les autres radios du même groupe
+            $('input[name="' + $radio.attr('name') + '"]').data('waschecked', false);
+            $radio.data('waschecked', true);
+        }
+    });
 });
 </script>
 {% endblock %}
