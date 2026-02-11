@@ -59,7 +59,8 @@ def paiement_tpe(request):
 
     # --- CAS HELLOASSO ---
     if plateforme == "HELLOASSO":
-        base_url = "https://wizardly-unmasticatory-ali.ngrok-free.dev"
+        base_url = "https://sacadoc.flambeaux.org"
+        #base_url = "https://wizardly-unmasticatory-ali.ngrok-free.dev"
         config = HelloAssoConfig.objects.filter(activites=activite, actif=True).first()
         if not config:
             return JsonResponse({"success": False, "erreur": "Configuration HelloAsso manquante"}, status=400)
@@ -102,7 +103,7 @@ def paiement_tpe(request):
             return JsonResponse({"success": False, "erreur": "Configuration Stripe manquante"}, status=400)
 
 
-        STRIPE_DEV = True  # POUR DEV
+        STRIPE_DEV = False  # POUR DEV
         if STRIPE_DEV:
             base_url = "http://127.0.0.1:8000"
         else:
