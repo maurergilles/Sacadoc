@@ -15,47 +15,82 @@ from django.contrib import messages
 from django.db.models import Q, Count
 from crispy_forms.utils import render_crispy_form
 from core.views import crud
-from core.models import PortailRenseignement, Piece, TypePiece, Inscription, Individu, Rattachement, NomTarif, Tarif, Activite
+from core.models import PortailRenseignement, Piece, TypePiece, Inscription, Individu, Rattachement, NomTarif, Tarif, Activite, Groupe
 from portail.forms.inscrire_activite import Formulaire, Formulaire_extra
 from portail.views.base import CustomView
 from django.forms import formset_factory
 
+
 def Get_activites_par_structure(request):
-        structure_id = request.POST.get('structure_id')
-        #print(structure_id)
-        activites = Activite.objects.filter(structure=structure_id, visible=True)
-        activites_data = [{'id': activite.idactivite, 'nom': activite.nom} for activite in activites]
-        #print(activites_data)
-        return JsonResponse({'activites': activites_data})
+    structure_id = request.POST.get('structure_id')
+    # On filtre et on s'assure d'avoir des objets valides
+    activites = Activite.objects.filter(structure_id=structure_id, visible=True).order_by('nom')
+
+    activites_data = []
+    for a in activites:
+        # On récupère les groupes liés à l'activité
+        # Attention : vérifie si dans ton modèle c'est 'id' ou 'idgroupe'
+        groupes = list(Groupe.objects.filter(activite=a).values('idgroupe', 'nom'))
+
+        activites_data.append({
+            'id': a.pk,
+            'nom': a.nom,
+            'groupes': groupes
+        })
+    return JsonResponse({'activites': activites_data})
+
 
 def Get_form_extra(request):
-        """ Retourne un form avec le groupe et les documents """
-        form = Formulaire(request.POST, request=request)
-        if not form.is_valid():
-            return JsonResponse({"form_html": None})
+    """ Retourne le formulaire dynamique (Groupe + Tarifs + Pièces) """
+    # On récupère les IDs envoyés par le script JS
+    individu_id = request.POST.get('individu')
+    activite_id = request.POST.get('activite')
 
-        # Création du contexte
-        context = {}
-        context.update(csrf(request))
+    # Sécurité : on vérifie que les deux sont présents
+    if not individu_id or not activite_id:
+        return JsonResponse({
+            "form_html": "<div class='alert alert-info small'><i class='fa fa-info-circle mr-2'></i> "
+                         "Veuillez sélectionner un individu et une activité.</div>"
+        })
 
-        # Rendu du form en html
-        form = Formulaire_extra(request=request, activite=form.cleaned_data["activite"], famille=form.cleaned_data["famille"], individu=form.cleaned_data["individu"])
-        form_html = render_crispy_form(form, context=context)
+    try:
+        # On récupère les objets en base
+        activite = Activite.objects.get(pk=activite_id)
+        individu = Individu.objects.get(pk=individu_id)
+        famille = request.user.famille  # On utilise la famille de la session
+
+        # On prépare le formulaire extra avec ces objets
+        form = Formulaire_extra(
+            activite=activite,
+            famille=famille,
+            individu=individu
+        )
+
+        form_html = render_crispy_form(form, context=csrf(request))
         return JsonResponse({"form_html": form_html})
 
+    except (Activite.DoesNotExist, Individu.DoesNotExist):
+        return JsonResponse({"form_html": "<div class='alert alert-danger'>Erreur : Données introuvables.</div>"})
 
 def Valid_form(request):
-    """ Validation du form principal et du form extra """
-    # Validation du formulaire principal
+    """ Validation et enregistrement final """
     form = Formulaire(request.POST, request=request)
     if not form.is_valid():
-        messages_erreurs = ["%s : %s" % (field.title(), erreur[0].message) for field, erreur in form.errors.as_data().items()]
-        return JsonResponse({"erreur": ", ".join(messages_erreurs)}, status=401)
+        return JsonResponse({"erreur": "Formulaire principal invalide"}, status=400)
 
-    # Validation du formulaire extra (groupe et documents)
-    form_extra = Formulaire_extra(request.POST, request.FILES, request=request, activite=form.cleaned_data["activite"], famille=form.cleaned_data["famille"], individu=form.cleaned_data["individu"])
+    # /!\ IMPORTANT : Passer request.FILES ici
+    form_extra = Formulaire_extra(
+        request.POST,
+        request.FILES,
+        activite=form.cleaned_data["activite"],
+        famille=form.cleaned_data["famille"],
+        individu=form.cleaned_data["individu"]
+    )
+
     if not form_extra.is_valid():
-        return JsonResponse({"erreur": "L'un des fichiers n'est pas valide. Vérifiez que le fichier est bien de type pdf, jpg ou png."}, status=401)
+        # On renvoie la première erreur trouvée
+        first_error = list(form_extra.errors.values())[0][0]
+        return JsonResponse({"erreur": f"Erreur : {first_error}"}, status=400)
 
     # Récupération des données
     famille = form.cleaned_data["famille"]
@@ -147,7 +182,7 @@ def Valid_form(request):
 class Page(CustomView):
     model = PortailRenseignement
     menu_code = "portail_activites"
-
+    template_name = "portail/inscription_activite_custom.html"
     def get_context_data(self, **kwargs):
         context = super(Page, self).get_context_data(**kwargs)
         context['page_titre'] = _("Inscrire à une nouvelle activité")
@@ -163,7 +198,7 @@ class Ajouter(Page, crud.Ajouter):
     form_class = Formulaire
     texte_confirmation = _("La demande a bien été transmise")
     titre_historique = "Inscrire à une activité"
-    template_name = "portail/edit.html"
+    template_name = "portail/inscription_activite_custom.html"
 
     def Get_detail_historique(self, instance):
         return "Famille=%s, Individu=%s" % (instance.famille, instance.individu)
