@@ -26,21 +26,6 @@ def browser_type_launch_args(browser_type_launch_args):
         "headless": False,
     }
 
-@pytest.fixture(scope="session")
-def django_db_setup():
-    import subprocess
-    from django.conf import settings
-    db_path = os.path.join(settings.BASE_DIR, 'db.sqlite3')
-    test_db_path = os.path.join(settings.BASE_DIR, 'test.sqlite3')
-
-    subprocess.run(
-        f"sqlite3 {db_path} .schema | sqlite3 {test_db_path}",
-        shell=True,
-        check=True
-    )
-    settings.DATABASES['default']['NAME'] = test_db_path
-
-
 @pytest.fixture
 def auto_login_user(db, client, live_server, page: Page):
     def make_auto_login(user):
