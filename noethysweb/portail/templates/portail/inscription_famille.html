@@ -63,6 +63,10 @@
 
             {{ form.turnstile }}
 
+            {% if form.errors.turnstile %}
+                <p>Veuillez re-essayer le captcha</p>
+            {% endif %}
+
             <button name="login" id="login" class="btn btn-block btn-primary login-btn mb-4" type="submit">{% trans "Envoyer" %}</button>
         </form>
     {% endif %}
