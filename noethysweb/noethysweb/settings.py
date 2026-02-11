@@ -21,7 +21,7 @@ SECRET_KEY = 'fdjsqfq543Z4645RFsdfSs564Z5-z(YZdqswFSDf'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["127.0.0.1"]
+ALLOWED_HOSTS = ["127.0.0.1","wizardly-unmasticatory-ali.ngrok-free.dev"]
 
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 LOGIN_REDIRECT_URL = "accueil"
@@ -37,12 +37,6 @@ AXES_META_PRECEDENCE_ORDER = [
     'HTTP_X_FORWARDED_FOR',
     'REMOTE_ADDR'
 ]
-
-# CAPTCHA
-CAPTCHA_FONT_SIZE = 30
-CAPTCHA_IMAGE_SIZE = (90, 40)
-CAPTCHA_LETTER_ROTATION = (-55, 55)
-CAPTCHA_CHALLENGE_FUNCT = "core.utils.utils_captcha.random_digit_challenge"
 
 # UPLOAD PHOTOS
 UPLOAD_FORM_PARALLEL_UPLOAD = False
@@ -97,7 +91,7 @@ INSTALLED_APPS = [
     'anymail',
     'formtools',
     'axes',
-    'captcha',
+    'turnstile',
     'django_extensions',
     'upload_form',
     'dbbackup',
@@ -309,6 +303,7 @@ CSP_SCRIPT_SRC = (
     "https://ajax.googleapis.com",
     "https://cdnjs.cloudflare.com",
     "https://cdn.jsdelivr.net",
+    "https://challenges.cloudflare.com",
 )
 
 CSP_FRAME_SRC = (
@@ -316,11 +311,17 @@ CSP_FRAME_SRC = (
     "https://www.youtube.com",
     "https://www.youtube-nocookie.com",
     "https://docs.google.com",
+    "https://challenges.cloudflare.com",
 )
 
 CSP_FRAME_ANCESTORS = (
     "'self'",
 )
+
+# Turnstile Captcha
+TURNSTILE_SITEKEY = '1x00000000000000000000AA'
+TURNSTILE_SECRET = '1x0000000000000000000000000000000AA'
+TURNSTILE_ENABLE = False
 
 # Chargement des settings de production
 try:

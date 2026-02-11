@@ -166,3 +166,5 @@ $RECYCLE.BIN/
 *.lnk
 noethysweb/ngrok.exe
 noethysweb/noethysweb/settings.py
+# Test results
+test-results/
