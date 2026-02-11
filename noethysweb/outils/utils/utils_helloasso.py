@@ -12,13 +12,14 @@ class HelloAssoClient:
     CHECKOUT_URL_PROD_TEMPLATE = "https://api.helloasso.com/v5/organizations/{org}/checkout-intents"
     CHECKOUT_URL_SANDBOX_TEMPLATE = "https://api.helloasso-sandbox.com/v5/organizations/{org}/checkout-intents"
 
-    def __init__(self, client_id, client_secret, organisation_slug, sandbox=False): #POUR LE DEV UNIQUEMENT !!!!!
+    def __init__(self, client_id, client_secret, organisation_slug, sandbox=True): #POUR LE DEV UNIQUEMENT !!!!!
         self.client_id = client_id
         self.client_secret = client_secret
         self.organisation_slug = organisation_slug
-        self.sandbox = sandbox
+        self.sandbox = True #POUR LE DEV UNIQUEMENT !!!!!
         self.token = None
-        if sandbox:
+        dev=True
+        if dev:
             self.CHECKOUT_URL_TEMPLATE = self.CHECKOUT_URL_SANDBOX_TEMPLATE
         else:
             self.CHECKOUT_URL_TEMPLATE = self.CHECKOUT_URL_PROD_TEMPLATE
@@ -71,7 +72,7 @@ class HelloAssoClient:
             "reference": reference or "PAIEMENT_AUTO"
         }
         print("=== INIT PAYLOAD ===")
-
+        print(url)
         headers = {"Authorization": f"Bearer {token}", "Content-Type": "application/json"}
         resp = requests.post(url, json=payload, headers=headers)
         resp.raise_for_status()
