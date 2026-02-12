@@ -1,6 +1,7 @@
 import datetime, json
 from decimal import Decimal
 from django.db.models import Q, Sum
+from django.urls import reverse
 from core.views import crud
 from core.models import Inscription, Activite, Prestation, Ventilation
 from individus.utils import utils_pieces_manquantes, utils_vaccinations
@@ -85,6 +86,9 @@ class Liste(Page, crud.CustomListe):
             famille = ins.famille
             solde_info = dict_solde.get(individu.pk, {"solde": 0})
 
+            individu_url = reverse('individu_resume', kwargs={'idfamille': famille.pk, 'idindividu': individu.pk})
+            individu_html = f"<a href='{individu_url}'>{individu.nom} {individu.prenom}</a>"
+
             missing_pieces = utils_pieces_manquantes.Get_pieces_manquantes_individu(famille, individu, ins.activite) or []
             tooltip_text = "&#10;".join([piece['label'] for piece in missing_pieces]) if missing_pieces else None
             pieces_html = Get_html_with_tooltip(len(missing_pieces), tooltip_text)
@@ -96,7 +100,7 @@ class Liste(Page, crud.CustomListe):
             nb_sondages = len(utils_sondages_manquants.Get_sondages_manquants_individu(individu, famille, structure) or [])
 
             lignes.append((
-                f"{individu.nom} {individu.prenom}",
+                individu_html,
                 nb_renseignements,
                 pieces_html,
                 nb_vaccins,
