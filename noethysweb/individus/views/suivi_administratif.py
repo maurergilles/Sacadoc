@@ -24,7 +24,7 @@ class Liste(Page, crud.CustomListe):
     colonnes = [
         Colonne("individu", "Individu"),
         Colonne("renseignements_manquants", "Renseignements"),
-        Colonne("pieces_manquantes", "Pièces"),
+        Colonne("pieces_manquantes", "Pièces manquantes"),
         Colonne("vaccins_manquants", "Vaccinations"),
         Colonne("questions_manquantes", "Questionnaires"),
         Colonne("sondages_manquants", "Sondages"),
