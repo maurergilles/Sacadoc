@@ -63,7 +63,7 @@ class View(DjangoBaseView):
         token = token_entry.access_token
         org_slug = token_entry.organisation_slug
 
-        HELLOASSO_FORCE_SANDBOX = True
+        HELLOASSO_FORCE_SANDBOX = False #DEV
         api_base = "https://api.helloasso-sandbox.com/v5/organizations" if HELLOASSO_FORCE_SANDBOX else "https://api.helloasso.com/v5/organizations"
 
         url = f"{api_base}/{org_slug}/checkout-intents/{checkout_intent_id}"
