@@ -68,13 +68,18 @@
                     <div id="loading_extra" style="display:none;" class="text-center py-4">
                         <i class="fa fa-spinner fa-spin fa-2x text-info"></i>
                     </div>
-
                     <div id="form_extra"></div>
-
                     <div id="placeholder_extra" class="text-center py-5">
-                        <i class="fa fa-mouse-pointer fa-3x mb-3 text-muted" style="opacity: 0.3;"></i>
-                        <p class="text-muted lead">Veuillez sélectionner une structure puis une activité pour afficher les options.</p>
+                        <div class="mb-3">
+                            <span class="fa-stack fa-2x">
+                                <i class="fa fa-circle fa-stack-2x text-light"></i>
+                                <i class="fa fa-mouse-pointer fa-stack-1x text-muted"></i>
+                            </span>
+                        </div>
+                        <h5 class="text-muted">Sélection des options</h5>
+                        <p class="text-muted px-4">Sélectionnez un <strong>individu</strong>, choisissez une <strong>structure</strong>, une <strong>activité</strong> et un <strong>groupe</strong> puis sélectionnez les tarifs</p>
                     </div>
+
                 </div>
             </div>
 
@@ -103,6 +108,39 @@
                 transition: border-color .15s ease-in-out, box-shadow .15s ease-in-out;
             }
             .info-box-content { overflow: visible !important; }
+
+            /* Style des box de documents */
+            .document-upload-box {
+                transition: all 0.3s ease;
+                border-left: 4px solid #17a2b8 !important;
+            }
+            .document-upload-box:hover {
+                background-color: #f8f9fa !important;
+                border-color: #138496 !important;
+                box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+            }
+
+            /* Customisation du label File Input */
+            .document-upload-box label {
+                font-weight: bold;
+                color: #495057;
+                display: block;
+            }
+
+            /* Texte d'aide */
+            .document-upload-box .help-block {
+                font-size: 0.85rem;
+                color: #6c757d;
+            }
+
+            /* Info-boxes du haut */
+            .info-box {
+                min-height: 70px;
+            }
+            .info-box-icon {
+                width: 50px;
+                font-size: 1.2rem;
+            }
         </style>
 
     {% endblock %}

@@ -127,13 +127,46 @@ def Valid_form(request):
         tarifs_selectionnes = request.POST.getlist(field_name)
         id_tarifs_selectionnes.extend(tarifs_selectionnes)
 
-    # Si tu veux que ce soit optionnel, commente ces deux lignes :
-    # if not id_tarifs_selectionnes:
-    #    return JsonResponse({"erreur": "Vous devez sélectionner au moins un tarif"}, status=401)
+    if not id_tarifs_selectionnes:
+        return JsonResponse({"erreur": "Vous devez sélectionner au moins un tarif"}, status=401)
 
-    # 6. Vérifications Noethys (Inscriptions multiples, places dispos, etc.)
-    # ... (Garde ton code actuel ici, il est correct) ...
-    # Utilise bien la variable 'groupe' définie plus haut.
+        # Vérifie qu'il n'y a pas déjà une demande en attente pour la même activité et le même individu
+        for demande in PortailRenseignement.objects.filter(famille=famille, individu=individu, etat="ATTENTE",
+                                                           code="inscrire_activite"):
+            try:
+                activite_id = json.loads(demande.nouvelle_valeur).split(";")[0]
+                if int(activite_id) == activite.pk:
+                    return JsonResponse({
+                        "erreur": "Une demande en attente de traitement existe déjà pour cet individu et cette activité"},
+                        status=401)
+            except (json.JSONDecodeError, ValueError) as e:
+                # Gérer les erreurs de décodage JSON ou conversion en entier
+                print(f"Erreur lors de la vérification de la demande en attente : {e}")
+                # Continuer le traitement des autres demandes
+
+    # Vérifie s'il reste de la place
+    if activite.portail_inscriptions_bloquer_si_complet:
+        places_prises = Inscription.objects.filter(activite=activite).aggregate(
+            total=Count("pk", filter=Q(statut="ok")), attente=Count("pk", filter=Q(statut="attente")),
+            total_groupe=Count("pk", filter=Q(statut="ok", groupe=groupe)),
+            attente_groupe=Count("pk", filter=Q(statut="attente", groupe=groupe)),
+        )
+        if activite.nbre_inscrits_max and places_prises["total"] >= activite.nbre_inscrits_max:
+            return JsonResponse({"erreur": "Cette activité est déjà complète"}, status=401)
+        if groupe.nbre_inscrits_max and places_prises["total_groupe"] >= groupe.nbre_inscrits_max:
+            return JsonResponse({"erreur": "Ce groupe est déjà complet"}, status=401)
+
+    inscription_famille = Inscription.objects.filter(activite=activite, famille=famille)
+
+    if activite.maitrise and individu.statut in [0]:
+        return JsonResponse({
+                                "erreur": "Cet individu ne peut pas s'inscrire à cette activité. Si vous êtes responsable dans cette activité, veuillez changer votre statut dans votre fiche (onglet identité)."},
+                            status=401)
+
+    if activite.public in [0, 1, 2, 3, 4, 6] and individu.statut not in [0, 1, 2, 3, 4] and not inscription_famille:
+        return JsonResponse({
+                                "erreur": "Cet individu ne peut pas s'inscrire à cette activité. Un adulte responsable doit être inscrit au préalable."},
+                            status=401)
 
     # 7. Enregistrement de la demande
     try:

@@ -10,7 +10,7 @@ from django.utils.translation import gettext_lazy as _
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Hidden, HTML, Div, Field
 from core.models import (Activite, Rattachement, Groupe, PortailRenseignement,
-                         NomTarif, Tarif, Structure, TarifLigne)
+                         NomTarif, Tarif, Structure, TarifLigne,PortailDocument)
 from core.utils.utils_commandes import Commandes
 from portail.forms.fiche import FormulaireBase
 from individus.utils import utils_pieces_manquantes
@@ -36,13 +36,26 @@ class Formulaire_extra(FormulaireBase, forms.Form):
         if activite and activite.image:
             layout_elements.append(HTML(
                 f'<div class="text-center my-3">'
-                f'<img src="{activite.image.url}" class="img-fluid rounded shadow-sm" style="max-height: 200px;">'
+                f'<img src="{activite.image.url}" class="img-fluid rounded shadow-sm" style="max-height: 400px;">'
                 f'</div>'
             ))
 
         # 2. Tarifs (Radio boutons)
         if activite:
             noms_tarifs = NomTarif.objects.filter(activite=activite, visible=True).order_by("nom")
+            if noms_tarifs.exists():
+                # Ajout du titre pour la section Tarifs
+                layout_elements.append(HTML("""
+                                <div class='alert alert-warning mb-4 shadow-sm border-0'>
+                                    <div class='d-flex align-items-center'>
+                                        <i class='fa fa-euro fa-2x mr-3 text-info'></i>
+                                        <div>
+                                            <h5 class='mb-0 text-bold'>Choix des tarifs</h5>
+                                            <p class='mb-0 small text-muted'>Veuillez sélectionner le tarif correspondant à votre situation.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            """))
             for nt in noms_tarifs:
                 tarifs = Tarif.objects.filter(nom_tarif=nt, activite=activite, visible=True)
                 if tarifs.exists():
@@ -54,7 +67,7 @@ class Formulaire_extra(FormulaireBase, forms.Form):
                         choices.append((t.pk, f"{t.description} ({montant})"))
 
                     self.fields[f_name] = forms.ModelChoiceField(
-                        label=nt.nom,
+                        label=f"<strong>{nt.nom}</strong>",
                         queryset=tarifs,
                         widget=forms.RadioSelect(),
                         required=False  # Optionnel pour pouvoir décocher
@@ -62,18 +75,67 @@ class Formulaire_extra(FormulaireBase, forms.Form):
                     self.fields[f_name].choices = choices
                     layout_elements.append(Field(f_name))
 
-            # 3. Pièces jointes
-            if activite.portail_inscriptions_imposer_pieces:
-                pieces = utils_pieces_manquantes.Get_liste_pieces_necessaires(activite, famille, individu)
-                for p in pieces:
-                    if not p["valide"]:
-                        f_id = f"document_{p['type_piece'].pk}"
-                        self.fields[f_id] = forms.FileField(
-                            label=p['type_piece'].nom,
-                            required=True,
-                            validators=[FileExtensionValidator(allowed_extensions=['pdf', 'png', 'jpg'])]
-                        )
-                        layout_elements.append(Field(f_id))
+            if activite and famille and individu:  # Sécurité pour éviter le TypeError
+                if activite.portail_inscriptions_imposer_pieces:
+                    pieces_necessaires = utils_pieces_manquantes.Get_liste_pieces_necessaires(
+                        activite=activite,
+                        famille=famille,
+                        individu=individu
+                    )
+
+                    pieces_pas_valides = [piece for piece in pieces_necessaires if not piece["valide"]]
+                    if pieces_pas_valides:
+                        layout_elements.append(HTML("""
+                            <div class='alert alert-warning mb-4 shadow-sm border-0'>
+                                <div class='d-flex align-items-center'>
+                                    <i class='fa fa-file fa-2x mr-3 text-info'></i>
+                                    <div>
+                                        <h5 class='mb-0 text-bold'>Pièces justificatives manquantes</h5>
+                                        <p class='mb-0 small text-muted'>Veuillez joindre les documents requis pour finaliser votre inscription.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        """))
+                    if not pieces_necessaires:
+                        layout_elements.append(
+                            HTML("<p class='alert alert-info'>Aucune pièce justificative n'est requise.</p>"))
+                    elif not pieces_pas_valides:
+                        layout_elements.append(
+                            HTML("<p class='alert alert-success'>Toutes les pièces sont déjà validées.</p>"))
+                    else:
+                        for piece_necessaire in pieces_necessaires:
+                            if not piece_necessaire["valide"]:
+                                nom_field = f"document_{piece_necessaire['type_piece'].pk}"
+
+                                # --- Préparation du texte d'aide avec icône de téléchargement ---
+                                help_text = ""
+                                modele_url = None
+
+                                portail_document = PortailDocument.objects.filter(activites=activite,
+                                                                                  type_piece=piece_necessaire[
+                                                                                      "type_piece"]).first()
+                                if portail_document:
+                                    modele_url = portail_document.document.url
+                                elif piece_necessaire["document"]:
+                                    modele_url = piece_necessaire["document"].document.url
+
+                                if modele_url:
+                                    help_text = f"""<div class='mt-2'><a href='{modele_url}' target='_blank' class='btn btn-xs btn-outline-info'>
+                                                        <i class='fa fa-download mr-1'></i> Télécharger le modèle à compléter</a></div>"""
+
+                                self.fields[nom_field] = forms.FileField(
+                                    label=piece_necessaire["type_piece"].nom,
+                                    help_text=help_text,
+                                    required=True,
+                                    widget=forms.FileInput(attrs={'class': 'form-control-file'}),  # Widget plus propre
+                                    validators=[FileExtensionValidator(allowed_extensions=['pdf', 'png', 'jpg'])]
+                                )
+
+                                # Encapsulation dans une Div stylisée
+                                layout_elements.append(Div(
+                                    Field(nom_field),
+                                    css_class="document-upload-box p-3 mb-3 border rounded bg-light"
+                                ))
 
         self.helper.layout = Layout(*layout_elements)
 
