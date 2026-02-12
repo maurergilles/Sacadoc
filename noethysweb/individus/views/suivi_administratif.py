@@ -6,6 +6,7 @@ from core.models import Inscription, Activite, Prestation, Ventilation
 from individus.utils import utils_pieces_manquantes, utils_vaccinations
 from portail.utils import utils_renseignements_manquants, utils_questionnaires_manquants, utils_sondages_manquants
 from core.views.customdatatable import CustomDatatable, Colonne
+from core.utils.utils_tooltip import Get_html_with_tooltip
 
 
 class Page(crud.Page):
@@ -84,7 +85,10 @@ class Liste(Page, crud.CustomListe):
             famille = ins.famille
             solde_info = dict_solde.get(individu.pk, {"solde": 0})
 
-            nb_pieces = len(utils_pieces_manquantes.Get_pieces_manquantes_individu(famille, individu, ins.activite) or [])
+            missing_pieces = utils_pieces_manquantes.Get_pieces_manquantes_individu(famille, individu, ins.activite) or []
+            tooltip_text = "&#10;".join([piece['label'] for piece in missing_pieces]) if missing_pieces else None
+            pieces_html = Get_html_with_tooltip(len(missing_pieces), tooltip_text)
+
             nb_vaccins = len(utils_vaccinations.Get_vaccins_obligatoires_by_inscriptions([ins]).get(individu, []) or [])
             nb_questions = len(utils_questionnaires_manquants.Get_question_individu(individu) or [])
             renseignement = utils_renseignements_manquants.Get_renseignements_manquants_individu(individu)
@@ -94,7 +98,7 @@ class Liste(Page, crud.CustomListe):
             lignes.append((
                 f"{individu.nom} {individu.prenom}",
                 nb_renseignements,
-                nb_pieces,
+                pieces_html,
                 nb_vaccins,
                 nb_questions,
                 nb_sondages,
