@@ -90,8 +90,13 @@ class Liste(Page, crud.CustomListe):
             individu_html = f"<a href='{individu_url}'>{individu.nom} {individu.prenom}</a>"
 
             missing_pieces = utils_pieces_manquantes.Get_pieces_manquantes_individu(famille, individu, ins.activite) or []
-            tooltip_text = "&#10;".join([piece['label'] for piece in missing_pieces]) if missing_pieces else None
-            pieces_html = Get_html_with_tooltip(len(missing_pieces), tooltip_text)
+            nb_pieces = len(missing_pieces)
+
+            if nb_pieces == 0: 
+                pieces_html = "0"
+            else: 
+                tooltip_text = "&#10;".join([piece['label'] for piece in missing_pieces]) if missing_pieces else None
+                pieces_html = Get_html_with_tooltip(nb_pieces, tooltip_text)
 
             nb_vaccins = len(utils_vaccinations.Get_vaccins_obligatoires_by_inscriptions([ins]).get(individu, []) or [])
             nb_questions = len(utils_questionnaires_manquants.Get_question_individu(individu) or [])
