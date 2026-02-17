@@ -1,11 +1,13 @@
 import datetime, json
 from decimal import Decimal
 from django.db.models import Q, Sum
+from django.urls import reverse
 from core.views import crud
 from core.models import Inscription, Activite, Prestation, Ventilation
 from individus.utils import utils_pieces_manquantes, utils_vaccinations
 from portail.utils import utils_renseignements_manquants, utils_questionnaires_manquants, utils_sondages_manquants
 from core.views.customdatatable import CustomDatatable, Colonne
+from core.utils.utils_tooltip import Get_html_with_tooltip
 
 
 class Page(crud.Page):
@@ -22,7 +24,7 @@ class Liste(Page, crud.CustomListe):
     colonnes = [
         Colonne("individu", "Individu"),
         Colonne("renseignements_manquants", "Renseignements"),
-        Colonne("pieces_manquantes", "Pièces"),
+        Colonne("pieces_manquantes", "Pièces manquantes"),
         Colonne("vaccins_manquants", "Vaccinations"),
         Colonne("questions_manquantes", "Questionnaires"),
         Colonne("sondages_manquants", "Sondages"),
@@ -84,7 +86,18 @@ class Liste(Page, crud.CustomListe):
             famille = ins.famille
             solde_info = dict_solde.get(individu.pk, {"solde": 0})
 
-            nb_pieces = len(utils_pieces_manquantes.Get_pieces_manquantes_individu(famille, individu, ins.activite) or [])
+            individu_url = reverse('individu_resume', kwargs={'idfamille': famille.pk, 'idindividu': individu.pk})
+            individu_html = f"<a href='{individu_url}'>{individu.nom} {individu.prenom}</a>"
+
+            missing_pieces = utils_pieces_manquantes.Get_pieces_manquantes_individu(famille, individu, ins.activite) or []
+            nb_pieces = len(missing_pieces)
+
+            if nb_pieces == 0: 
+                pieces_html = "0"
+            else: 
+                tooltip_text = "&#10;".join([piece['label'] for piece in missing_pieces]) if missing_pieces else None
+                pieces_html = Get_html_with_tooltip(nb_pieces, tooltip_text)
+
             nb_vaccins = len(utils_vaccinations.Get_vaccins_obligatoires_by_inscriptions([ins]).get(individu, []) or [])
             nb_questions = len(utils_questionnaires_manquants.Get_question_individu(individu) or [])
             renseignement = utils_renseignements_manquants.Get_renseignements_manquants_individu(individu)
@@ -92,9 +105,9 @@ class Liste(Page, crud.CustomListe):
             nb_sondages = len(utils_sondages_manquants.Get_sondages_manquants_individu(individu, famille, structure) or [])
 
             lignes.append((
-                f"{individu.nom} {individu.prenom}",
+                individu_html,
                 nb_renseignements,
-                nb_pieces,
+                pieces_html,
                 nb_vaccins,
                 nb_questions,
                 nb_sondages,
