@@ -19,9 +19,9 @@ MODE_DEMO = False
 SECRET_KEY = 'fdjsqfq543Z4645RFsdfSs564Z5-z(YZdqswFSDf'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
-ALLOWED_HOSTS = ["127.0.0.1","wizardly-unmasticatory-ali.ngrok-free.dev"]
+ALLOWED_HOSTS = ["joie-et-vie.sacadoc.org", '37.59.122.1']
 
 X_FRAME_OPTIONS = 'SAMEORIGIN'
 LOGIN_REDIRECT_URL = "accueil"
@@ -185,13 +185,21 @@ LOCALE_PATHS = (
     os.path.join(BASE_DIR, "locale"),
 )
 
-# Static files (CSS, JavaScript, Images)
-STATIC_ROOT = os.path.join(BASE_DIR, 'static')
+# URL publique pour accéder aux fichiers statiques
 STATIC_URL = '/static/'
 
-# Media files
-MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+# Dossier(s) source des fichiers statiques
+STATICFILES_DIRS = [
+    os.path.join(BASE_DIR, 'core', 'static'),
+]
+
+# Dossier de destination pour collectstatic (prod)
+STATIC_ROOT = os.path.join(BASE_DIR, 'core', 'static_collected')
+
+
+# Media (uploads)
 MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Crispy forms
 CRISPY_ALLOWED_TEMPLATE_PACKS = "bootstrap4"
@@ -256,7 +264,7 @@ LOGGING = {
             'level': 'DEBUG',
             'filters': ['request_uid'],
             "class": "logging.FileHandler",
-            'filename': os.path.join(BASE_DIR, '..', 'debug_json.log'),
+            'filename': '/var/log/sacadoc/debug_json.log',
             'formatter': 'json',
         },
         'mail_admins': {

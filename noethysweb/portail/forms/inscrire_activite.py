@@ -180,6 +180,7 @@ class Formulaire(FormulaireBase, ModelForm):
                       (Q(portail_inscriptions_affichage="PERIODE") &
                        Q(portail_inscriptions_date_debut__lte=datetime.datetime.now()) &
                        Q(portail_inscriptions_date_fin__gte=datetime.datetime.now())))
+        self.fields["structure"].queryset = Structure.objects.filter(visible=True).order_by("nom")
         self.fields["activite"].queryset = Activite.objects.filter(conditions).order_by("nom")
 
         self.helper.layout = Layout(
