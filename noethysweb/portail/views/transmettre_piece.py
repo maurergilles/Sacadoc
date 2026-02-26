@@ -47,6 +47,7 @@ class Ajouter(Page, crud.Ajouter):
 
         # Gestion des fichiers téléchargés
         documents = {
+            'document': form.cleaned_data.get('document'),
             'document1': form.cleaned_data.get('document1'),
             'document2': form.cleaned_data.get('document2'),
             'document3': form.cleaned_data.get('document3'),
